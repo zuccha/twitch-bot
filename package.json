@@ -1,0 +1,9 @@
+{
+  "name": "twitch-server",
+  "version": "1.0.0",
+  "description": "Server for some Twitch apps",
+  "main": "index.js",
+  "scripts": {},
+  "author": "zuccha",
+  "license": "MIT"
+}
