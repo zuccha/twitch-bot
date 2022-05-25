@@ -44,15 +44,20 @@ export default class Collection<T> {
   }
 
   random(): Failure | T {
-    const id = $Array.randomItem(this._ids);
-    const maybeItem = this._byId[id];
+    const maybeId = $Array.randomItem(this._ids);
+    if (!maybeId) {
+      return new Failure("Collection.random", "Collection is empty");
+    }
 
-    return maybeItem
-      ? maybeItem
-      : new Failure("Collection.random", `There are no items`);
+    const maybeItem = this._byId[maybeId];
+    if (!maybeItem) {
+      return new Failure("Collection.random", "Collection is empty");
+    }
+
+    return maybeItem;
   }
 
   map<R>(fn: (item: T) => R): R[] {
-    return this._ids.map((id) => fn(this._byId[id]));
+    return this._ids.map((id) => fn(this._byId[id]!));
   }
 }

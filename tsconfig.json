@@ -1,0 +1,19 @@
+{
+  "include": ["src/**/*"],
+  "exclude": ["node_modules"],
+
+  "compilerOptions": {
+    "lib": ["esnext", "dom"],
+    "module": "commonjs",
+    "target": "esnext",
+
+    "outDir": "dist",
+
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+    "exactOptionalPropertyTypes": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noUncheckedIndexedAccess": true,
+    "strict": true
+  }
+}

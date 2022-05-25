@@ -4,7 +4,7 @@ import Quiz from "./base/Quiz";
 import { CountryQuizGenerator } from "./quizGenerators/country/CountryQuizGenerator";
 
 export default class QuizEngine {
-  private _maybeQuiz?: Quiz;
+  private _maybeQuiz: Quiz | undefined;
   private _quizGenerators = new Collection({
     country: new CountryQuizGenerator(),
   });
@@ -17,6 +17,12 @@ export default class QuizEngine {
     await Promise.all(
       this._quizGenerators.map((quizGenerator) => quizGenerator.setup())
     );
+  }
+
+  get quizQuestion(): string {
+    return this._maybeQuiz
+      ? this._maybeQuiz.question
+      : "<No quiz is in progress>";
   }
 
   startQuiz(): Failure | undefined {
