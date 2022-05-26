@@ -12,7 +12,11 @@ export default class CountryCapitalQuiz extends Quiz {
 
   isAnswerCorrect(answer: string): boolean {
     const normalizedAnswer = $String.normalize(answer);
-    const normalizedCapital = $String.normalize(this._country.capital);
-    return normalizedCapital === normalizedAnswer;
+    return (
+      (this._country.capitals.length === 0 && normalizedAnswer === "") ||
+      this._country.capitals.some(
+        (capital) => $String.normalize(capital) === normalizedAnswer
+      )
+    );
   }
 }

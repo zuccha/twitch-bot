@@ -8,6 +8,8 @@
     "target": "esnext",
 
     "outDir": "dist",
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
 
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,

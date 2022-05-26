@@ -13,10 +13,18 @@ export default class QuizEngine {
     this._maybeQuiz = undefined;
   }
 
-  async setupQuizGenerators(): Promise<void> {
-    await Promise.all(
+  async setupQuizGenerators(): Promise<Failure | undefined> {
+    const results = await Promise.all(
       this._quizGenerators.map((quizGenerator) => quizGenerator.setup())
     );
+
+    const maybeFailure = results.find((result) => result instanceof Failure);
+    if (maybeFailure) {
+      return maybeFailure.extend(
+        "Engine.setupQuizGenerators",
+        "Failed to setup quiz generators"
+      );
+    }
   }
 
   get quizQuestion(): string {
