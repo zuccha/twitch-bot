@@ -87,7 +87,7 @@ export const loadConfig = (): Config | Failure => {
   }
 
   return {
-    channel,
+    channel: channel.toLowerCase(),
 
     credentials: {
       username: credentialsUsername,
