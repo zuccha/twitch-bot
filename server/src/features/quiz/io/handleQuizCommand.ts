@@ -16,13 +16,13 @@ const handleStartQuizCommand = (args: QuizCommandHandlerArgs) => {
     return;
   }
 
-  const maybeFailure = args.context.quizEngine.startQuiz();
-  if (maybeFailure instanceof Failure) {
-    args.say(maybeFailure.message);
+  const quizOrFailure = args.context.quizEngine.startQuiz();
+  if (quizOrFailure instanceof Failure) {
+    args.say(quizOrFailure.message);
     return;
   }
 
-  const question = args.context.quizEngine.quizQuestion;
+  const question = quizOrFailure.question;
   args.notify({ type: "QUIZ_STARTED", payload: { question } });
   args.say(`Quiz time! ${question} Answer with !answer <value>`);
 };

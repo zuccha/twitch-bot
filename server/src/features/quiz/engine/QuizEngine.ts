@@ -27,13 +27,11 @@ export default class QuizEngine {
     }
   }
 
-  get quizQuestion(): string {
-    return this._maybeQuiz
-      ? this._maybeQuiz.question
-      : "<No quiz is in progress>";
+  get quizQuestion(): string | undefined {
+    return this._maybeQuiz?.question;
   }
 
-  startQuiz(): Failure | undefined {
+  startQuiz(): Failure | Quiz {
     if (this._maybeQuiz) {
       return new Failure("Engine.startQuiz", "A quiz is already in progress");
     }
@@ -55,6 +53,7 @@ export default class QuizEngine {
     }
 
     this._maybeQuiz = quizOrFailure;
+    return quizOrFailure;
   }
 
   stopQuiz(): Failure | string {
