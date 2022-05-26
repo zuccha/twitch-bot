@@ -1,8 +1,7 @@
 import chalk from "chalk";
 import { Server } from "socket.io";
 import tmi from "tmi.js";
-import QuizEngine from "./engines/QuizEngine/QuizEngine";
-import handleQuiz from "./handlers/handleQuiz";
+import { QuizEngine, handleQuizCommand } from "./features/quiz";
 import { loadConfig } from "./utils/Config";
 import Failure from "./utils/Failure";
 import "dotenv/config";
@@ -42,7 +41,11 @@ const main = async () => {
     const [command = "", ...params] = message.split(" ").filter(Boolean);
     const args = { command, params, config, tags, say, notify };
 
-    handleQuiz({ ...args, context: { quizEngine } });
+    if (!command.startsWith("!")) {
+      return;
+    }
+
+    handleQuizCommand({ ...args, context: { quizEngine } });
   });
 };
 

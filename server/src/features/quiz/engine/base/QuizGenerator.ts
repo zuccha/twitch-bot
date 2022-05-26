@@ -1,4 +1,4 @@
-import Failure from "../../../utils/Failure";
+import Failure from "../../../../utils/Failure";
 import Quiz from "./Quiz";
 
 export default abstract class QuizGenerator {

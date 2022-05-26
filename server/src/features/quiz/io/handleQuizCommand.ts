@@ -1,10 +1,14 @@
-import QuizEngine from "../engines/QuizEngine/QuizEngine";
-import Failure from "../utils/Failure";
-import { HandlerArgs } from "./HandlerArgs";
+import { QuizNotification } from "../../../../../common/io/QuizNotification";
+import Failure from "../../../utils/Failure";
+import { CommandHandlerArgs } from "../../../utils/CommandHandlerArgs";
+import QuizEngine from "../engine/QuizEngine";
 
-type QuizHandlerArgs = HandlerArgs<{ quizEngine: QuizEngine }>;
+type QuizCommandHandlerArgs = CommandHandlerArgs<
+  { quizEngine: QuizEngine },
+  QuizNotification
+>;
 
-const handleStartQuiz = (args: QuizHandlerArgs) => {
+const handleStartQuizCommand = (args: QuizCommandHandlerArgs) => {
   if (args.tags.username !== args.config.channel) {
     args.say("You don't have permissions to start a quiz :(");
     return;
@@ -21,7 +25,7 @@ const handleStartQuiz = (args: QuizHandlerArgs) => {
   args.say(`Quiz time! ${question} Answer with !answer <value>`);
 };
 
-const handleStopQuiz = (args: QuizHandlerArgs) => {
+const handleStopQuizCommand = (args: QuizCommandHandlerArgs) => {
   if (args.tags.username !== args.config.channel) {
     args.say("You don't have permissions to stop the quiz :(");
     return;
@@ -33,12 +37,13 @@ const handleStopQuiz = (args: QuizHandlerArgs) => {
     return;
   }
 
-  args.notify({ type: "QUIZ_ENDED", payload: { question: undefined } });
+  args.notify({ type: "QUIZ_ENDED", payload: { answer: answerOrFailure } });
   args.say(`Nobody guessed the correct answer, it was "${answerOrFailure}"!`);
 };
 
-const handleAnswerQuiz = (args: QuizHandlerArgs) => {
+const handleAnswerQuizCommand = (args: QuizCommandHandlerArgs) => {
   const answer = args.params.join(" ");
+  const user = `@${args.tags["display-name"]}`;
 
   const resultOrFailure = args.context.quizEngine.evaluateQuizAnswer(answer);
   if (resultOrFailure instanceof Failure) {
@@ -46,39 +51,41 @@ const handleAnswerQuiz = (args: QuizHandlerArgs) => {
     return;
   }
 
-  args.notify({ type: "QUIZ_GUESSED", payload: { question: undefined } });
-  args.say(
-    typeof resultOrFailure === "string"
-      ? `You guessed it @${args.tags["display-name"]}, the answer was "${resultOrFailure}"!`
-      : "Wrong! Give it another try :)"
-  );
+  if (resultOrFailure === undefined) {
+    args.say(`Wrong ${user}! Give it another try :)`);
+    return;
+  }
+
+  args.notify({ type: "QUIZ_GUESSED", payload: { answer: resultOrFailure } });
+  args.say(`You guessed it ${user}, the answer was "${resultOrFailure}"!`);
 };
 
-const handleHelpQuiz = (args: QuizHandlerArgs) => {
+const handleHelpQuizCommand = (args: QuizCommandHandlerArgs) => {
   args.say(`Usage:
  • !quiz: starts a quiz
  • !quiz-stop - stops the current quiz
- • !answer <value> - answers the current quiz question`);
+ • !answer <value> - answers the current quiz question
+ • !quiz-help - print this message`);
 };
 
-const handleQuiz = (args: QuizHandlerArgs) => {
+const handleQuizCommand = (args: QuizCommandHandlerArgs) => {
   switch (args.command) {
     case "!quiz":
-      handleStartQuiz(args);
+      handleStartQuizCommand(args);
       break;
 
     case "!quiz-stop":
-      handleStopQuiz(args);
+      handleStopQuizCommand(args);
       break;
 
     case "!answer":
-      handleAnswerQuiz(args);
+      handleAnswerQuizCommand(args);
       break;
 
     case "!quiz-help":
-      handleHelpQuiz(args);
+      handleHelpQuizCommand(args);
       break;
   }
 };
 
-export default handleQuiz;
+export default handleQuizCommand;

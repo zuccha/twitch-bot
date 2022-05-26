@@ -1,7 +1,7 @@
-import Collection from "../../utils/Collection";
-import Failure from "../../utils/Failure";
+import Collection from "../../../utils/Collection";
+import Failure from "../../../utils/Failure";
 import Quiz from "./base/Quiz";
-import { CountryQuizGenerator } from "./quizGenerators/country/CountryQuizGenerator";
+import { CountryQuizGenerator } from "./generators/country/CountryQuizGenerator";
 
 export default class QuizEngine {
   private _maybeQuiz: Quiz | undefined;

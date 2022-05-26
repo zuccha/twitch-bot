@@ -1,6 +1,6 @@
 import { z } from "zod";
-import Collection from "../../../../utils/Collection";
-import Failure from "../../../../utils/Failure";
+import Collection from "../../../../../utils/Collection";
+import Failure from "../../../../../utils/Failure";
 import Quiz from "../../base/Quiz";
 import QuizGenerator from "../../base/QuizGenerator";
 import CountryCapitalQuiz from "./quizzes/CountryCapitalQuiz";

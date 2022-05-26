@@ -1,4 +1,4 @@
-import $String from "../../../../../utils/String";
+import $String from "../../../../../../utils/String";
 import Quiz from "../../../base/Quiz";
 import { Country } from "../Country";
 
