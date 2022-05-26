@@ -1,9 +1,10 @@
+import chalk from "chalk";
+import { Server } from "socket.io";
 import tmi from "tmi.js";
 import QuizEngine from "./engines/QuizEngine/QuizEngine";
 import handleQuiz from "./handlers/handleQuiz";
 import { loadConfig } from "./utils/Config";
 import Failure from "./utils/Failure";
-
 import "dotenv/config";
 
 const main = async () => {
@@ -17,22 +18,31 @@ const main = async () => {
   const quizEngine = new QuizEngine();
   await quizEngine.setupQuizGenerators();
 
-  const client = new tmi.Client({
+  const twitch = new tmi.Client({
     channels: [config.channel],
     identity: config.identity,
   });
 
+  const io = new Server(3001);
+
   const say = (message: string) => {
-    client.say(config.channel, message);
-    console.log(message);
+    twitch.say(config.channel, message);
+    console.log(chalk.hex("#9147FF")(message));
   };
 
-  client.connect();
+  const notify = (message: { type: string; payload: unknown }) => {
+    io.send(message);
+    const output = `${message.type}: ${JSON.stringify(message.payload)}`;
+    console.log(chalk.hex("#CD3762")(output));
+  };
 
-  client.on("message", (channel, tags, message) => {
+  twitch.connect();
+
+  twitch.on("message", (channel, tags, message) => {
     const [command = "", ...params] = message.split(" ").filter(Boolean);
+    const args = { command, params, config, tags, say, notify };
 
-    handleQuiz({ command, params, context: { quizEngine }, config, tags, say });
+    handleQuiz({ ...args, context: { quizEngine } });
   });
 };
 

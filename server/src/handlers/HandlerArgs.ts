@@ -8,4 +8,5 @@ export type HandlerArgs<T extends Record<string, unknown> = {}> = {
   config: Config;
   tags: tmi.ChatUserstate;
   say: (message: string) => void;
+  notify: (message: { type: string; payload: unknown }) => void;
 };

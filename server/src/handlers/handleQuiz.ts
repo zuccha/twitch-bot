@@ -16,9 +16,9 @@ const handleStartQuiz = (args: QuizHandlerArgs) => {
     return;
   }
 
-  args.say(
-    `Quiz time! ${args.context.quizEngine.quizQuestion} Answer with !answer <value>`
-  );
+  const question = args.context.quizEngine.quizQuestion;
+  args.notify({ type: "QUIZ_STARTED", payload: { question } });
+  args.say(`Quiz time! ${question} Answer with !answer <value>`);
 };
 
 const handleStopQuiz = (args: QuizHandlerArgs) => {
@@ -33,6 +33,7 @@ const handleStopQuiz = (args: QuizHandlerArgs) => {
     return;
   }
 
+  args.notify({ type: "QUIZ_ENDED", payload: { question: undefined } });
   args.say(`Nobody guessed the correct answer, it was "${answerOrFailure}"!`);
 };
 
@@ -45,6 +46,7 @@ const handleAnswerQuiz = (args: QuizHandlerArgs) => {
     return;
   }
 
+  args.notify({ type: "QUIZ_GUESSED", payload: { question: undefined } });
   args.say(
     typeof resultOrFailure === "string"
       ? `You guessed it @${args.tags["display-name"]}, the answer was "${resultOrFailure}"!`
