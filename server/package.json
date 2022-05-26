@@ -4,7 +4,8 @@
   "description": "Server for some Twitch apps",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon src/index.ts"
+    "dev": "nodemon src/index.ts",
+    "start": "ts-node src/index.ts"
   },
   "author": "zuccha",
   "license": "MIT",
