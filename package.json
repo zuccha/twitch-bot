@@ -1,5 +1,5 @@
 {
-  "name": "twitch-server",
+  "name": "twitch-bot-server",
   "version": "1.0.0",
   "description": "Server for some Twitch apps",
   "main": "index.js",
