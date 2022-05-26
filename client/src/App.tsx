@@ -1,16 +1,16 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import HomeRoute from "./routes/HomeRoute";
-import QuizAdminRoute from "./routes/quiz/QuizAdminRoute";
-import QuizMainRoute from "./routes/quiz/QuizMainRoute";
+import HomePage from "./features/auth/pages/HomePage";
+import QuizAdminPage from "./features/quiz/pages/QuizAdminPage";
+import QuizMainPage from "./features/quiz/pages/QuizMainPage";
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/quiz/admin" element={<QuizAdminRoute />} />
-        <Route path="/quiz" element={<QuizMainRoute />} />
+        <Route path="/quiz/admin" element={<QuizAdminPage />} />
+        <Route path="/quiz" element={<QuizMainPage />} />
 
-        <Route path="/" element={<HomeRoute />} />
+        <Route path="/" element={<HomePage />} />
       </Routes>
     </BrowserRouter>
   );

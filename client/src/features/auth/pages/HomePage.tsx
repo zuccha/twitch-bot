@@ -1,7 +1,7 @@
 import { Button, Flex, SimpleGrid } from "@chakra-ui/react";
 import { Link } from "react-router-dom";
 
-export default function HomeRoute() {
+export default function HomePage() {
   return (
     <Flex alignItems="center" justifyContent="center" height="100vh">
       <SimpleGrid columns={2} spacing={6}>
