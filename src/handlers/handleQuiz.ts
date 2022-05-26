@@ -6,7 +6,7 @@ type QuizHandlerArgs = HandlerArgs<{ quizEngine: QuizEngine }>;
 
 const handleStartQuiz = (args: QuizHandlerArgs) => {
   if (args.tags.username !== args.config.channel) {
-    args.say("You don't have permissions to start a quiz");
+    args.say("You don't have permissions to start a quiz :(");
     return;
   }
 
@@ -16,12 +16,14 @@ const handleStartQuiz = (args: QuizHandlerArgs) => {
     return;
   }
 
-  args.say(args.context.quizEngine.quizQuestion);
+  args.say(
+    `Quiz time! ${args.context.quizEngine.quizQuestion} Answer with !answer <value>`
+  );
 };
 
 const handleStopQuiz = (args: QuizHandlerArgs) => {
   if (args.tags.username !== args.config.channel) {
-    args.say("You don't have permissions to stop the quiz");
+    args.say("You don't have permissions to stop the quiz :(");
     return;
   }
 
@@ -35,7 +37,7 @@ const handleStopQuiz = (args: QuizHandlerArgs) => {
 };
 
 const handleAnswerQuiz = (args: QuizHandlerArgs) => {
-  const answer = args.params[0] ?? "";
+  const answer = args.params.join(" ");
 
   const resultOrFailure = args.context.quizEngine.evaluateQuizAnswer(answer);
   if (resultOrFailure instanceof Failure) {
@@ -50,18 +52,29 @@ const handleAnswerQuiz = (args: QuizHandlerArgs) => {
   );
 };
 
+const handleHelpQuiz = (args: QuizHandlerArgs) => {
+  args.say(`Usage:
+ • !quiz: starts a quiz
+ • !quiz-stop - stops the current quiz
+ • !answer <value> - answers the current quiz question`);
+};
+
 const handleQuiz = (args: QuizHandlerArgs) => {
   switch (args.command) {
     case "!quiz":
       handleStartQuiz(args);
       break;
 
-    case "!stop":
+    case "!quiz-stop":
       handleStopQuiz(args);
       break;
 
     case "!answer":
       handleAnswerQuiz(args);
+      break;
+
+    case "!quiz-help":
+      handleHelpQuiz(args);
       break;
   }
 };

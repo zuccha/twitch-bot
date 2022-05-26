@@ -7,7 +7,7 @@ const $String = {
       .replace(/ñ/g, "n")
       .replace(/ș/g, "s")
       .replace(/[áàâäåăã]/g, "a")
-      .replace(/[éèêë]/g, "e")
+      .replace(/[éèêëē]/g, "e")
       .replace(/[íìîï]/g, "i")
       .replace(/[óòôö]/g, "o")
       .replace(/[úùûü]/g, "u")
