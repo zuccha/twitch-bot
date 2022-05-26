@@ -57,24 +57,26 @@ export default class QuizEngine {
     this._maybeQuiz = quizOrFailure;
   }
 
-  stopQuiz(): Failure | undefined {
+  stopQuiz(): Failure | string {
     if (!this._maybeQuiz) {
       return new Failure("Engine.stopQuiz", "No quiz is in progress");
     }
 
+    const answer = this._maybeQuiz.answer;
     this._maybeQuiz = undefined;
+
+    return answer;
   }
 
-  evaluateQuizAnswer(answer: string): Failure | boolean {
+  evaluateQuizAnswer(answer: string): Failure | string | undefined {
     if (!this._maybeQuiz) {
       return new Failure("Engine.evaluateQuizAnswer", "No quiz is in progress");
     }
 
     if (this._maybeQuiz.isAnswerCorrect(answer)) {
+      const realAnswer = this._maybeQuiz.answer;
       this._maybeQuiz = undefined;
-      return true;
+      return realAnswer;
     }
-
-    return false;
   }
 }

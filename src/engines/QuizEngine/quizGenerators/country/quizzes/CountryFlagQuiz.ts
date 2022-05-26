@@ -10,6 +10,10 @@ export default class CountryFlagQuiz extends Quiz {
     this._country = country;
   }
 
+  get answer(): string {
+    return this._country.name;
+  }
+
   isAnswerCorrect(answer: string): boolean {
     const normalizedAnswer = $String.normalize(answer);
     const normalizedCode = $String.normalize(this._country.code);

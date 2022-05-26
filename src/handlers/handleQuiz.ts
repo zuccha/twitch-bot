@@ -25,13 +25,13 @@ const handleStopQuiz = (args: QuizHandlerArgs) => {
     return;
   }
 
-  const maybeFailure = args.context.quizEngine.stopQuiz();
-  if (maybeFailure instanceof Failure) {
-    args.say(maybeFailure.message);
+  const answerOrFailure = args.context.quizEngine.stopQuiz();
+  if (answerOrFailure instanceof Failure) {
+    args.say(answerOrFailure.message);
     return;
   }
 
-  args.say("Quiz interrupted...");
+  args.say(`Nobody guessed the correct answer, it was "${answerOrFailure}"!`);
 };
 
 const handleAnswerQuiz = (args: QuizHandlerArgs) => {
@@ -43,7 +43,11 @@ const handleAnswerQuiz = (args: QuizHandlerArgs) => {
     return;
   }
 
-  args.say(resultOrFailure ? "Correct!" : "Wrong...");
+  args.say(
+    typeof resultOrFailure === "string"
+      ? `You guessed it @${args.tags["display-name"]}, the answer was "${resultOrFailure}"!`
+      : "Wrong! Give it another try :)"
+  );
 };
 
 const handleQuiz = (args: QuizHandlerArgs) => {

@@ -5,9 +5,11 @@ export default abstract class Quiz {
     this._question = question;
   }
 
-  public abstract isAnswerCorrect(answer: string): boolean;
-
   get question(): string {
     return this._question;
   }
+
+  abstract get answer(): string;
+
+  public abstract isAnswerCorrect(answer: string): boolean;
 }

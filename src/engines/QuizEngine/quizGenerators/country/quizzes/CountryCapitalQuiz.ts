@@ -10,6 +10,10 @@ export default class CountryCapitalQuiz extends Quiz {
     this._country = country;
   }
 
+  get answer(): string {
+    return this._country.capitals.join(", ");
+  }
+
   isAnswerCorrect(answer: string): boolean {
     const normalizedAnswer = $String.normalize(answer);
     return (
