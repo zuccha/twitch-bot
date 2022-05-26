@@ -1,51 +1,92 @@
 import chalk from "chalk";
 import { Server } from "socket.io";
 import tmi from "tmi.js";
-import { QuizEngine, handleQuizCommand } from "./features/quiz";
+import QuizFeature from "./features/quiz";
 import { loadConfig } from "./utils/Config";
 import Failure from "./utils/Failure";
 import "dotenv/config";
 
 const main = async () => {
-  const config = loadConfig();
+  /**
+   * Load config
+   */
 
+  const config = loadConfig();
   if (config instanceof Failure) {
     console.log(config.message);
     return;
   }
 
-  const quizEngine = new QuizEngine();
-  await quizEngine.setupQuizGenerators();
+  /**
+   * Initialize features
+   */
+
+  const features = [new QuizFeature()];
+
+  await Promise.all(features.map((feature) => feature.setup()));
+
+  /**
+   * Initialize Twitch client
+   */
 
   const twitch = new tmi.Client({
     channels: [config.channel],
     identity: config.identity,
   });
 
-  const io = new Server(3001);
+  await twitch.connect();
 
   const say = (message: string) => {
     twitch.say(config.channel, message);
     console.log(chalk.hex("#9147FF")(message));
   };
 
-  const notify = (message: { type: string; payload: unknown }) => {
-    io.send(message);
-    const output = `${message.type}: ${JSON.stringify(message.payload)}`;
-    console.log(chalk.hex("#CD3762")(output));
+  /**
+   * Initialize websocket server
+   */
+
+  const io = new Server(3001, {
+    cors: {
+      origin: "http://localhost:3000",
+      methods: ["GET", "POST"],
+    },
+  });
+
+  const notify = (notification: { type: string; payload: unknown }) => {
+    io.send(notification);
+    const payload = JSON.stringify(notification.payload);
+    console.log(chalk.hex("#CD3762")(`${notification.type}: ${payload}`));
   };
 
-  twitch.connect();
+  /**
+   * Setup listeners
+   */
 
   twitch.on("message", (channel, tags, message) => {
     const [command = "", ...params] = message.split(" ").filter(Boolean);
-    const args = { command, params, config, tags, say, notify };
+    const args = { command, params, config, tags, context: {}, say, notify };
 
     if (!command.startsWith("!")) {
       return;
     }
 
-    handleQuizCommand({ ...args, context: { quizEngine } });
+    features.forEach((feature) => {
+      feature.handleCommand(args);
+    });
+  });
+
+  io.on("connection", (socket) => {
+    const id = socket.handshake.query["id"];
+    if (typeof id !== "string") {
+      return;
+    }
+
+    features.forEach((feature) => {
+      const notification = feature.getInitialNotification(id);
+      if (notification) {
+        socket.send(notification);
+      }
+    });
   });
 };
 

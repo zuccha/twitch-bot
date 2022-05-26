@@ -1,11 +1,13 @@
-import { QuizNotification } from "../../../../../common/io/QuizNotification";
 import Failure from "../../../utils/Failure";
 import { CommandHandlerArgs } from "../../../utils/CommandHandlerArgs";
 import QuizEngine from "../engine/QuizEngine";
+import { QuizNotification } from "./QuizNotification";
 
-type QuizCommandHandlerArgs = CommandHandlerArgs<
-  { quizEngine: QuizEngine },
-  QuizNotification
+export type QuizContext = { quizEngine: QuizEngine };
+
+export type QuizCommandHandlerArgs = CommandHandlerArgs<
+  QuizNotification,
+  QuizContext
 >;
 
 const handleStartQuizCommand = (args: QuizCommandHandlerArgs) => {
