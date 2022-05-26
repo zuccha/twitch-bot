@@ -6,32 +6,32 @@ type QuizHandlerArgs = HandlerArgs<{ quizEngine: QuizEngine }>;
 
 const handleStartQuiz = (args: QuizHandlerArgs) => {
   if (args.tags.username !== args.config.channel) {
-    console.log("You don't have permissions to start a quiz");
+    args.say("You don't have permissions to start a quiz");
     return;
   }
 
   const maybeFailure = args.context.quizEngine.startQuiz();
   if (maybeFailure instanceof Failure) {
-    console.log(maybeFailure.message);
+    args.say(maybeFailure.message);
     return;
   }
 
-  console.log(args.context.quizEngine.quizQuestion);
+  args.say(args.context.quizEngine.quizQuestion);
 };
 
 const handleStopQuiz = (args: QuizHandlerArgs) => {
   if (args.tags.username !== args.config.channel) {
-    console.log("You don't have permissions to stop the quiz");
+    args.say("You don't have permissions to stop the quiz");
     return;
   }
 
   const maybeFailure = args.context.quizEngine.stopQuiz();
   if (maybeFailure instanceof Failure) {
-    console.log(maybeFailure.message);
+    args.say(maybeFailure.message);
     return;
   }
 
-  console.log("Quiz interrupted...");
+  args.say("Quiz interrupted...");
 };
 
 const handleAnswerQuiz = (args: QuizHandlerArgs) => {
@@ -39,11 +39,11 @@ const handleAnswerQuiz = (args: QuizHandlerArgs) => {
 
   const resultOrFailure = args.context.quizEngine.evaluateQuizAnswer(answer);
   if (resultOrFailure instanceof Failure) {
-    console.log(resultOrFailure.message);
+    args.say(resultOrFailure.message);
     return;
   }
 
-  console.log(resultOrFailure ? "Correct!" : "Wrong...");
+  args.say(resultOrFailure ? "Correct!" : "Wrong...");
 };
 
 const handleQuiz = (args: QuizHandlerArgs) => {
