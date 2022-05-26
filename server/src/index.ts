@@ -1,10 +1,12 @@
 import chalk from "chalk";
+import dotenv from "dotenv";
 import { Server } from "socket.io";
 import tmi from "tmi.js";
 import QuizFeature from "./features/quiz";
 import { loadConfig } from "./utils/Config";
 import Failure from "./utils/Failure";
-import "dotenv/config";
+
+dotenv.config({ path: "../.env" });
 
 const main = async () => {
   /**
@@ -31,7 +33,10 @@ const main = async () => {
 
   const twitch = new tmi.Client({
     channels: [config.channel],
-    identity: config.identity,
+    identity: {
+      username: config.credentials.username,
+      password: config.credentials.password,
+    },
   });
 
   await twitch.connect();
@@ -45,9 +50,9 @@ const main = async () => {
    * Initialize websocket server
    */
 
-  const io = new Server(3001, {
+  const io = new Server(config.websocket.port, {
     cors: {
-      origin: "http://localhost:3000",
+      origin: `${config.client.protocol}://${config.client.host}:${config.client.port}`,
       methods: ["GET", "POST"],
     },
   });
