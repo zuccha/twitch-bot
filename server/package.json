@@ -10,6 +10,7 @@
   "author": "zuccha",
   "license": "MIT",
   "devDependencies": {
+    "@types/sqlite3": "^3.1.8",
     "@types/tmi.js": "^1.8.1",
     "nodemon": "^2.0.16",
     "ts-node": "^10.8.0",
@@ -19,6 +20,7 @@
     "chalk": "^4.1.2",
     "dotenv": "^16.0.1",
     "socket.io": "^4.5.1",
+    "sqlite3": "^5.0.8",
     "tmi.js": "^1.8.5",
     "zod": "^3.17.3"
   }

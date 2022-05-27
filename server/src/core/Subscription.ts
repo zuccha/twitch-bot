@@ -5,7 +5,6 @@ import FeatureManager, { SupportedFeature } from "./FeatureManager";
 
 export default class Subscription {
   private _channel: string;
-  private _config: Config;
   private _notifier: Notifier<GenericNotification>;
   private _featureManager: FeatureManager;
 
@@ -13,16 +12,22 @@ export default class Subscription {
 
   constructor(
     channel: string,
-    config: Config,
     notifier: Notifier<GenericNotification>,
-    featureManager: FeatureManager
+    featureManager: FeatureManager,
+    featureIds: string[] = []
   ) {
     this._channel = channel;
-    this._config = config;
     this._notifier = notifier;
     this._featureManager = featureManager;
 
     this._features = new Collection();
+    featureIds.forEach((id) => {
+      const feature = this._featureManager.get(id);
+      if (feature) {
+        this._features.add(id, feature);
+        feature.addChannel(this._channel);
+      }
+    });
   }
 
   get features() {
@@ -36,6 +41,9 @@ export default class Subscription {
 
     if (info.user.isBroadcaster) {
       switch (command) {
+        case "!features":
+          this._handleListFeatures();
+          break;
         case "!add-feature":
           params[0] && this._handleAddFeature(params[0]);
           break;
@@ -61,6 +69,12 @@ export default class Subscription {
       feature.removeChannel(this._channel);
     });
     this._features.clear();
+  }
+
+  private _handleListFeatures() {
+    const featuresList = this._features.map((feature) => feature.id).join(", ");
+    const message = `Features: ${featuresList || "<none>"}`;
+    this._notifier.notifyTwitch(this._channel, message);
   }
 
   private _handleAddFeature(id: string) {

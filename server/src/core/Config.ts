@@ -10,6 +10,11 @@ export type Config = {
   channel: string;
 
   /**
+   * Filename of the SQLite database.
+   */
+  dbFilename: string;
+
+  /**
    * Credentials for the user that bot user that will write in channels' chats.
    */
   credentials: {
@@ -44,6 +49,11 @@ export const loadConfig = (): Config | Failure => {
   const channel = process.env["TWITCH_BOT_CHANNEL"];
   if (!channel) {
     return new Failure("loadConfig", "No channel specified");
+  }
+
+  const dbFilename = process.env["TWITCH_BOT_DB_FILENAME"];
+  if (!dbFilename) {
+    return new Failure("loadConfig", "No DB filename specified");
   }
 
   const credentialsUsername = process.env["TWITCH_BOT_CREDENTIALS_USERNAME"];
@@ -88,6 +98,8 @@ export const loadConfig = (): Config | Failure => {
 
   return {
     channel: channel.toLowerCase(),
+
+    dbFilename,
 
     credentials: {
       username: credentialsUsername,

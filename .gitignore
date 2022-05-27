@@ -1,5 +1,6 @@
-# Config
+# Project
 .env
+*.db
 
 # Logs
 logs

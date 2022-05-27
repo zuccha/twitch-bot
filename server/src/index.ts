@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import { Server } from "socket.io";
 import tmi from "tmi.js";
 import { loadConfig } from "./core/Config";
+import DB from "./core/DB";
 import FeatureManager from "./core/FeatureManager";
 import Subscription from "./core/Subscription";
 import { GenericNotification } from "./core/types";
@@ -26,11 +27,26 @@ const main = async () => {
   }
 
   /**
+   * Initialize DB
+   */
+
+  const db = new DB(config.dbFilename);
+
+  /**
    * Initialize Twitch client
    */
 
+  const users = await db.getUsers();
+  if (users instanceof Failure) {
+    console.log(chalk.red(users.message));
+    console.log(chalk.red("Closing..."));
+    return;
+  }
+
+  console.log(users);
+
   const twitch = new tmi.Client({
-    channels: [config.channel],
+    channels: [config.channel, ...users.map((user) => user.channel)],
     identity: {
       username: config.credentials.username,
       password: config.credentials.password,
@@ -86,6 +102,16 @@ const main = async () => {
 
   const subscriptions = new Collection<Subscription>();
 
+  users.forEach((user) => {
+    const subscription = new Subscription(
+      user.channel,
+      notifier,
+      featureManager,
+      user.featureIds
+    );
+    subscriptions.add(user.channel, subscription);
+  });
+
   /**
    * Setup listeners
    */
@@ -133,11 +159,11 @@ const main = async () => {
       if (!subscriptions.has(info.user.name)) {
         const subscription = new Subscription(
           info.user.name,
-          config,
           notifier,
           featureManager
         );
         subscriptions.add(info.user.name, subscription);
+        db.addUser(info.user.name);
         // TODO: Check if already joined.
         twitch.join(info.user.name);
         notifyTwitch(info.channel, `${info.user.displayName} has joined!`);
@@ -152,6 +178,7 @@ const main = async () => {
         const subscription = subscriptions.byId(info.user.name);
         subscription?.clear();
         subscriptions.remove(info.user.name);
+        db.removeUser(info.user.name);
         // TODO: Check if not joined.
         twitch.part(info.user.name);
         notifyTwitch(info.channel, `${info.user.displayName} has left!`);
