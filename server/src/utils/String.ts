@@ -11,7 +11,7 @@ const $String = {
       .replace(/[íìîï]/g, "i")
       .replace(/[óòôö]/g, "o")
       .replace(/[úùûü]/g, "u")
-      .replace(/-\.,/g, " ")
+      .replace(/[\.,-]/g, " ")
       .replace(/\s+/g, " ");
   },
 };
