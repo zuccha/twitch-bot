@@ -149,6 +149,8 @@ const main = async () => {
 
     if (command === "!leave") {
       if (subscriptions.has(info.user.name)) {
+        const subscription = subscriptions.byId(info.user.name);
+        subscription?.clear();
         subscriptions.remove(info.user.name);
         // TODO: Check if not joined.
         twitch.part(info.user.name);

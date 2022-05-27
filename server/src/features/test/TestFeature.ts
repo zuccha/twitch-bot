@@ -25,4 +25,12 @@ export default class TestFeature extends Feature<
   setup(): Promise<Failure | undefined> {
     return Promise.resolve(undefined);
   }
+
+  addChannel(channel: string): void {
+    // Do nothing.
+  }
+
+  removeChannel(channel: string): void {
+    // Do nothing.
+  }
 }

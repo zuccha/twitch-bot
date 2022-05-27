@@ -30,4 +30,12 @@ export default class QuizFeature extends Feature<
   setup(): Promise<Failure | undefined> {
     return this._context.quizEngine.setupQuizGenerators();
   }
+
+  addChannel(channel: string): void {
+    // Do nothing.
+  }
+
+  removeChannel(channel: string): void {
+    this._context.quizEngine.stopQuiz(channel);
+  }
 }

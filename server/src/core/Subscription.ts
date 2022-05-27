@@ -56,10 +56,18 @@ export default class Subscription {
     });
   }
 
+  clear() {
+    this._features.forEach((feature) => {
+      feature.removeChannel(this._channel);
+    });
+    this._features.clear();
+  }
+
   private _handleAddFeature(id: string) {
     const feature = this._featureManager.get(id);
     if (feature) {
       this._features.add(id, feature);
+      feature.addChannel(this._channel);
       const message = `Feature "${id}" added!`;
       this._notifier.notifyTwitch(this._channel, message);
     }
@@ -68,19 +76,22 @@ export default class Subscription {
   private _handleAddAllFeatures() {
     this._featureManager.forEach((feature) => {
       this._features.add(feature.id, feature);
+      feature.addChannel(this._channel);
     });
     const message = `All features added!`;
     this._notifier.notifyTwitch(this._channel, message);
   }
 
   private _handleRemoveFeature(id: string) {
+    const feature = this._featureManager.get(id);
+    feature?.removeChannel(this._channel);
     this._features.remove(id);
     const message = `Feature "${id}" removed!`;
     this._notifier.notifyTwitch(this._channel, message);
   }
 
   private _handleRemoveAllFeatures() {
-    this._features.clear();
+    this.clear();
     const message = `All features removed!`;
     this._notifier.notifyTwitch(this._channel, message);
   }

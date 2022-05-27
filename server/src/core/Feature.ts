@@ -23,6 +23,10 @@ export default abstract class Feature<
 
   abstract setup(): Promise<Failure | undefined>;
 
+  abstract addChannel(channel: string): void;
+
+  abstract removeChannel(channel: string): void;
+
   handleCommand(command: string, params: string[], info: TwitchInfo): void {
     this._commandHandler.handle(command, params, info);
   }
