@@ -35,7 +35,7 @@ export default class Subscription {
       return;
     }
 
-    if (info.tags.username === info.channel) {
+    if (info.user.isBroadcaster) {
       switch (command) {
         case "!add-feature":
           params[0] && this._handleAddFeature(params[0]);

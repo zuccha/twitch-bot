@@ -40,7 +40,7 @@ export default class QuizCommandHandler extends CommandHandler<
     params: string[],
     info: TwitchInfo
   ) {
-    if (info.tags.username !== info.channel) {
+    if (!info.user.isBroadcaster) {
       const message = "You don't have permissions to start a quiz :(";
       this._notifier.notifyTwitch(info.channel, message);
       return;
@@ -63,7 +63,7 @@ export default class QuizCommandHandler extends CommandHandler<
   }
 
   private _handleStopQuiz(command: string, params: string[], info: TwitchInfo) {
-    if (info.tags.username !== info.channel) {
+    if (!info.user.isBroadcaster) {
       const message = "You don't have permissions to stop the quiz :(";
       this._notifier.notifyTwitch(info.channel, message);
       return;
@@ -89,7 +89,6 @@ export default class QuizCommandHandler extends CommandHandler<
     info: TwitchInfo
   ) {
     const answer = params.join(" ");
-    const user = `@${info.tags["display-name"]}`;
 
     const resultOrFailure = this._context.quizEngine.evaluateQuizAnswer(answer);
     if (resultOrFailure instanceof Failure) {
@@ -98,12 +97,12 @@ export default class QuizCommandHandler extends CommandHandler<
     }
 
     if (resultOrFailure === undefined) {
-      const message = `Wrong ${user}! Give it another try :)`;
+      const message = `Wrong ${info.user.displayName}! Give it another try :)`;
       this._notifier.notifyTwitch(info.channel, message);
       return;
     }
 
-    const message = `You guessed it ${user}, the answer was "${resultOrFailure}"!`;
+    const message = `You guessed it ${info.user.displayName}, the answer was "${resultOrFailure}"!`;
     this._notifier.notifyTwitch(info.channel, message);
     this._notifier.notifyWebSocket({
       type: "QUIZ_GUESSED",

@@ -43,7 +43,7 @@ const main = async () => {
 
   const notifyTwitch = (channel: string, message: string) => {
     twitch.say(channel, message);
-    console.log(chalk.hex("#9147FF")(message));
+    console.log(chalk.hex("#9147FF")(`[${channel}] ${message}`));
   };
 
   /**
@@ -94,46 +94,70 @@ const main = async () => {
 
   twitch.on("message", (channel, tags, message) => {
     const [command = "", ...params] = message.split(" ").filter(Boolean);
-    const info = { channel, tags };
+    const info = {
+      channel: channel.replace("#", ""),
+      isUserChannel:
+        channel.toLowerCase() !== `#${config.channel.toLowerCase()}`,
+      user: {
+        name: tags.username?.toLowerCase() ?? "",
+        displayName: tags["display-name"] ?? "",
+        isMod: Boolean(tags.mod),
+        isSubscriber: Boolean(tags.subscriber),
+        isBroadcaster:
+          channel.toLowerCase() === `#${tags.username?.toLowerCase()}`,
+      },
+    };
 
+    // Not a command
     if (!command.startsWith("!")) {
       return;
     }
 
-    if (config.channel !== channel) {
-      const subscription = subscriptions.byId(channel);
+    // Not a valid user
+    if (!info.user.name) {
+      return;
+    }
+
+    // Bot is writing commands in its own chat
+    if (info.user.name === config.channel) {
+      return;
+    }
+
+    // The message comes from a channel of a user subscribed to the bot
+    if (info.isUserChannel) {
+      const subscription = subscriptions.byId(info.user.name);
       subscription?.handleCommand(command, params, info);
       return;
     }
 
-    const username = tags.username;
-    if (!username) {
-      return;
-    }
-
+    // The message comes from the bot's own chat
     if (command === "!join") {
-      if (!subscriptions.has(username)) {
+      if (!subscriptions.has(info.user.name)) {
         const subscription = new Subscription(
-          username,
+          info.user.name,
           config,
           notifier,
           featureManager
         );
-        subscriptions.add(username, subscription);
-        twitch.join(username);
-        notifyTwitch(channel, `${username} has joined!`);
+        subscriptions.add(info.user.name, subscription);
+        // TODO: Check if already joined.
+        twitch.join(info.user.name);
+        notifyTwitch(info.channel, `${info.user.displayName} has joined!`);
       } else {
-        notifyTwitch(channel, `${username} is already joined!`);
+        const message = `${info.user.displayName} is already joined!`;
+        notifyTwitch(info.channel, message);
       }
     }
 
     if (command === "!leave") {
-      if (subscriptions.has(username)) {
-        subscriptions.remove(username);
-        twitch.part(username);
-        notifyTwitch(channel, `${username} has left!`);
+      if (subscriptions.has(info.user.name)) {
+        subscriptions.remove(info.user.name);
+        // TODO: Check if not joined.
+        twitch.part(info.user.name);
+        notifyTwitch(info.channel, `${info.user.displayName} has left!`);
       } else {
-        notifyTwitch(channel, `${username} is not joined!`);
+        const message = `${info.user.displayName} is not joined!`;
+        notifyTwitch(info.channel, message);
       }
     }
   });

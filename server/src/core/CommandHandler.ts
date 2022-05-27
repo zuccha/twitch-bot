@@ -1,4 +1,3 @@
-import tmi from "tmi.js";
 import { Config } from "./Config";
 import { GenericContext, GenericNotification } from "./types";
 
@@ -9,7 +8,13 @@ export type Notifier<Notification extends GenericNotification> = {
 
 export type TwitchInfo = {
   channel: string;
-  tags: tmi.ChatUserstate;
+  user: {
+    name: string;
+    displayName: string;
+    isMod: boolean;
+    isSubscriber: boolean;
+    isBroadcaster: boolean;
+  };
 };
 
 export default abstract class CommandHandler<

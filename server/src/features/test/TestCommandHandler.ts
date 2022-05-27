@@ -18,6 +18,8 @@ export default class TestCommandHandler extends CommandHandler<
   }
 
   handle(command: string, params: string[], info: TwitchInfo): void {
-    // Do nothing.
+    if (command === "!test") {
+      this._notifier.notifyTwitch(info.channel, "Hello world!");
+    }
   }
 }
