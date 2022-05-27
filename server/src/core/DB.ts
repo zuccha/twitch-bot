@@ -1,9 +1,16 @@
 import sqlite3 from "sqlite3";
 import Failure from "../utils/Failure";
+import Logger from "../utils/Logger";
 
 const sqlite3Verbose = sqlite3.verbose();
 
 const DBUtils = {
+  error: (err: Error | null) => {
+    if (err) {
+      Logger.error(err.message);
+    }
+  },
+
   each: <T>(
     db: sqlite3.Database,
     query: string,
@@ -35,10 +42,10 @@ export default class DB {
 
     this._db.serialize(() => {
       const createUsersTableQuery = `CREATE TABLE IF NOT EXISTS ${DB.USERS_TABLE} (channel TEXT PRIMARY KEY)`;
-      this._db.run(createUsersTableQuery);
+      this._db.run(createUsersTableQuery, DBUtils.error);
 
       const createFeaturesTableQuery = `CREATE TABLE IF NOT EXISTS ${DB.FEATURES_TABLE} (channel TEXT, featureId TEXT, PRIMARY KEY (channel, featureId))`;
-      this._db.run(createFeaturesTableQuery);
+      this._db.run(createFeaturesTableQuery, DBUtils.error);
     });
   }
 
@@ -57,43 +64,27 @@ GROUP BY ${DB.FEATURES_TABLE}.channel`;
   }
 
   addUser($channel: string): void {
-    try {
-      const insertUserQuery = `INSERT INTO ${DB.USERS_TABLE} (channel) VALUES ($channel)`;
-      this._db.run(insertUserQuery, { $channel });
-    } catch (error) {
-      console.log(error);
-    }
+    const insertUserQuery = `INSERT INTO ${DB.USERS_TABLE} (channel) VALUES ($channel)`;
+    this._db.run(insertUserQuery, { $channel }, DBUtils.error);
   }
 
   removeUser($channel: string): void {
-    try {
-      this._db.serialize(() => {
-        const removeUserQuery = `DELETE FROM ${DB.USERS_TABLE} WHERE channel = $channel`;
-        this._db.run(removeUserQuery, { $channel });
+    this._db.serialize(() => {
+      const removeUserQuery = `DELETE FROM ${DB.USERS_TABLE} WHERE channel = $channel`;
+      this._db.run(removeUserQuery, { $channel }, DBUtils.error);
 
-        const removeFeatureQuery = `DELETE FROM ${DB.FEATURES_TABLE} WHERE channel = $channel`;
-        this._db.run(removeFeatureQuery, { $channel });
-      });
-    } catch (error) {
-      console.log(error);
-    }
+      const removeFeatureQuery = `DELETE FROM ${DB.FEATURES_TABLE} WHERE channel = $channel`;
+      this._db.run(removeFeatureQuery, { $channel }, DBUtils.error);
+    });
   }
 
   addFeatureToUser($channel: string, $featureId: string): void {
-    try {
-      const addFeatureQuery = `INSERT INTO ${DB.FEATURES_TABLE} (channel, featureId) VALUES ($channel, $featureId)`;
-      this._db.run(addFeatureQuery, { $channel, $featureId });
-    } catch (error) {
-      console.log(error);
-    }
+    const addFeatureQuery = `INSERT INTO ${DB.FEATURES_TABLE} (channel, featureId) VALUES ($channel, $featureId)`;
+    this._db.run(addFeatureQuery, { $channel, $featureId }, DBUtils.error);
   }
 
   removeFeatureFromUser($channel: string, $featureId: string): void {
-    try {
-      const removeFeatureQuery = `DELETE FROM ${DB.FEATURES_TABLE} WHERE channel = $channel AND featureId = $featureId`;
-      this._db.run(removeFeatureQuery, { $channel, $featureId });
-    } catch (error) {
-      console.log(error);
-    }
+    const removeFeatureQuery = `DELETE FROM ${DB.FEATURES_TABLE} WHERE channel = $channel AND featureId = $featureId`;
+    this._db.run(removeFeatureQuery, { $channel, $featureId }, DBUtils.error);
   }
 }

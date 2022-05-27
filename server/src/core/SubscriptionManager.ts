@@ -42,6 +42,7 @@ export default class SubscriptionManager {
         user.channel,
         this._notifier,
         this._featureManager,
+        this._db,
         user.featureIds
       );
       this._subscriptions.add(user.channel, subscription);
@@ -74,7 +75,8 @@ export default class SubscriptionManager {
       const subscription = new Subscription(
         info.user.name,
         this._notifier,
-        this._featureManager
+        this._featureManager,
+        this._db
       );
       this._subscriptions.add(info.user.name, subscription);
 
