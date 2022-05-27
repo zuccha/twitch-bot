@@ -1,4 +1,4 @@
-import Failure from "./Failure";
+import Failure from "../utils/Failure";
 
 export type Config = {
   /**

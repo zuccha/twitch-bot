@@ -1,3 +1,7 @@
+import QuizEngine from "./engine/QuizEngine";
+
+export type QuizContext = { quizEngine: QuizEngine };
+
 export type QuizNotification =
   | { type: "QUIZ"; payload: { question: string | undefined } }
   | { type: "QUIZ_STARTED"; payload: { question: string } }

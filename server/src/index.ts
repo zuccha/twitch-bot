@@ -2,9 +2,11 @@ import chalk from "chalk";
 import dotenv from "dotenv";
 import { Server } from "socket.io";
 import tmi from "tmi.js";
-import QuizFeature from "./features/quiz";
+import { loadConfig } from "./core/Config";
+import { GenericNotification } from "./core/types";
+import QuizFeature from "./features/quiz/QuizFeature";
+import TestFeature from "./features/test/TestFeature";
 import Collection from "./utils/Collection";
-import { loadConfig } from "./utils/Config";
 import Failure from "./utils/Failure";
 
 dotenv.config({ path: "../.env" });
@@ -21,16 +23,6 @@ const main = async () => {
   }
 
   /**
-   * Initialize features
-   */
-
-  const features = new Collection({
-    [QuizFeature.ID]: new QuizFeature(),
-  });
-
-  await Promise.all(features.map((feature) => feature.setup()));
-
-  /**
    * Initialize Twitch client
    */
 
@@ -44,7 +36,7 @@ const main = async () => {
 
   await twitch.connect();
 
-  const say = (message: string) => {
+  const notifyTwitch = (message: string) => {
     twitch.say(config.channel, message);
     console.log(chalk.hex("#9147FF")(message));
   };
@@ -60,11 +52,24 @@ const main = async () => {
     },
   });
 
-  const notify = (notification: { type: string; payload: unknown }) => {
+  const notifyWebSocket = (notification: GenericNotification) => {
     io.send(notification);
     const payload = JSON.stringify(notification.payload);
     console.log(chalk.hex("#CD3762")(`${notification.type}: ${payload}`));
   };
+
+  /**
+   * Initialize features
+   */
+
+  const notifier = { notifyTwitch, notifyWebSocket };
+
+  const features = new Collection({
+    [QuizFeature.ID]: new QuizFeature(config, notifier),
+    [TestFeature.ID]: new TestFeature(config, notifier),
+  });
+
+  await Promise.all(features.map((feature) => feature.setup()));
 
   /**
    * Setup listeners
@@ -72,14 +77,14 @@ const main = async () => {
 
   twitch.on("message", (channel, tags, message) => {
     const [command = "", ...params] = message.split(" ").filter(Boolean);
-    const args = { command, params, config, tags, context: {}, say, notify };
+    const info = { channel, tags };
 
     if (!command.startsWith("!")) {
       return;
     }
 
     features.forEach((feature) => {
-      feature.handleCommand(args);
+      feature.handleCommand(command, params, info);
     });
   });
 
