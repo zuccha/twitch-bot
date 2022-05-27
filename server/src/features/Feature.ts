@@ -5,10 +5,11 @@ export default abstract class Feature<
   Context,
   Notification extends { type: string; payload: unknown }
 > {
+  private _id: string;
   protected _context: Context;
-  abstract ID: string;
 
-  constructor(context: Context) {
+  constructor(id: string, context: Context) {
+    this._id = id;
     this._context = context;
   }
 
@@ -19,7 +20,7 @@ export default abstract class Feature<
   protected abstract get initialNotification(): Notification;
 
   getInitialNotification(id: string): Notification | undefined {
-    return id === this.ID ? this.initialNotification : undefined;
+    return id === this._id ? this.initialNotification : undefined;
   }
 
   abstract setup(): Promise<Failure | undefined>;

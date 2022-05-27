@@ -11,10 +11,10 @@ export default class QuizFeature extends Feature<
   QuizContext,
   QuizNotification
 > {
-  ID = "quiz";
+  static ID = "quiz";
 
   constructor() {
-    super({ quizEngine: new QuizEngine() });
+    super(QuizFeature.ID, { quizEngine: new QuizEngine() });
   }
 
   get initialNotification(): QuizNotification {

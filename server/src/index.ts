@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import { Server } from "socket.io";
 import tmi from "tmi.js";
 import QuizFeature from "./features/quiz";
+import Collection from "./utils/Collection";
 import { loadConfig } from "./utils/Config";
 import Failure from "./utils/Failure";
 
@@ -23,7 +24,9 @@ const main = async () => {
    * Initialize features
    */
 
-  const features = [new QuizFeature()];
+  const features = new Collection({
+    [QuizFeature.ID]: new QuizFeature(),
+  });
 
   await Promise.all(features.map((feature) => feature.setup()));
 

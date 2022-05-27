@@ -57,6 +57,10 @@ export default class Collection<T> {
     return maybeItem;
   }
 
+  forEach(fn: (item: T) => void): void {
+    this._ids.forEach((id) => fn(this._byId[id]!));
+  }
+
   map<R>(fn: (item: T) => R): R[] {
     return this._ids.map((id) => fn(this._byId[id]!));
   }
