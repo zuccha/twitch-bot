@@ -19,7 +19,7 @@ export default abstract class Feature<
     return this._id;
   }
 
-  abstract get initialNotification(): Notification;
+  abstract getInitialNotification(channel: string): Notification;
 
   abstract setup(): Promise<Failure | undefined>;
 

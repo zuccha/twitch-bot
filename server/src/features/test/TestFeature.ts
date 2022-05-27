@@ -18,7 +18,7 @@ export default class TestFeature extends Feature<
     this._commandHandler = new TestCommandHandler(undefined, config, notifier);
   }
 
-  get initialNotification(): TestNotification {
+  getInitialNotification(): TestNotification {
     return { type: "TEST", payload: undefined };
   }
 

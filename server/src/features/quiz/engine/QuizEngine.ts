@@ -4,13 +4,13 @@ import Quiz from "./base/Quiz";
 import { CountryQuizGenerator } from "./generators/country/CountryQuizGenerator";
 
 export default class QuizEngine {
-  private _maybeQuiz: Quiz | undefined;
+  private _quizzes: Collection<Quiz>;
   private _quizGenerators = new Collection({
     country: new CountryQuizGenerator(),
   });
 
   constructor() {
-    this._maybeQuiz = undefined;
+    this._quizzes = new Collection();
   }
 
   async setupQuizGenerators(): Promise<Failure | undefined> {
@@ -27,12 +27,14 @@ export default class QuizEngine {
     }
   }
 
-  get quizQuestion(): string | undefined {
-    return this._maybeQuiz?.question;
+  getQuizQuestion(id: string): string | undefined {
+    return this._quizzes.byId(id)?.question;
   }
 
-  startQuiz(): Failure | Quiz {
-    if (this._maybeQuiz) {
+  startQuiz(id: string): Failure | Quiz {
+    const quiz = this._quizzes.byId(id);
+
+    if (quiz) {
       return new Failure("Engine.startQuiz", "A quiz is already in progress");
     }
 
@@ -52,29 +54,33 @@ export default class QuizEngine {
       );
     }
 
-    this._maybeQuiz = quizOrFailure;
+    this._quizzes.add(id, quizOrFailure);
     return quizOrFailure;
   }
 
-  stopQuiz(): Failure | string {
-    if (!this._maybeQuiz) {
+  stopQuiz(id: string): Failure | string {
+    const quiz = this._quizzes.byId(id);
+
+    if (!quiz) {
       return new Failure("Engine.stopQuiz", "No quiz is in progress");
     }
 
-    const answer = this._maybeQuiz.answer;
-    this._maybeQuiz = undefined;
+    const answer = quiz.answer;
+    this._quizzes.remove(id);
 
     return answer;
   }
 
-  evaluateQuizAnswer(answer: string): Failure | string | undefined {
-    if (!this._maybeQuiz) {
+  evaluateQuizAnswer(id: string, answer: string): Failure | string | undefined {
+    const quiz = this._quizzes.byId(id);
+
+    if (!quiz) {
       return new Failure("Engine.evaluateQuizAnswer", "No quiz is in progress");
     }
 
-    if (this._maybeQuiz.isAnswerCorrect(answer)) {
-      const realAnswer = this._maybeQuiz.answer;
-      this._maybeQuiz = undefined;
+    if (quiz.isAnswerCorrect(answer)) {
+      const realAnswer = quiz.answer;
+      this._quizzes.remove(id);
       return realAnswer;
     }
   }

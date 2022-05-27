@@ -46,7 +46,7 @@ export default class QuizCommandHandler extends CommandHandler<
       return;
     }
 
-    const quizOrFailure = this._context.quizEngine.startQuiz();
+    const quizOrFailure = this._context.quizEngine.startQuiz(info.user.name);
     if (quizOrFailure instanceof Failure) {
       this._notifier.notifyTwitch(info.channel, quizOrFailure.message);
       return;
@@ -69,7 +69,7 @@ export default class QuizCommandHandler extends CommandHandler<
       return;
     }
 
-    const answerOrFailure = this._context.quizEngine.stopQuiz();
+    const answerOrFailure = this._context.quizEngine.stopQuiz(info.user.name);
     if (answerOrFailure instanceof Failure) {
       this._notifier.notifyTwitch(info.channel, answerOrFailure.message);
       return;
@@ -90,7 +90,10 @@ export default class QuizCommandHandler extends CommandHandler<
   ) {
     const answer = params.join(" ");
 
-    const resultOrFailure = this._context.quizEngine.evaluateQuizAnswer(answer);
+    const resultOrFailure = this._context.quizEngine.evaluateQuizAnswer(
+      info.user.name,
+      answer
+    );
     if (resultOrFailure instanceof Failure) {
       this._notifier.notifyTwitch(info.channel, resultOrFailure.message);
       return;

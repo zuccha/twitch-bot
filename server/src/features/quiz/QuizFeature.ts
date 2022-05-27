@@ -20,10 +20,10 @@ export default class QuizFeature extends Feature<
     this._commandHandler = new QuizCommandHandler(context, config, notifier);
   }
 
-  get initialNotification(): QuizNotification {
+  getInitialNotification(channel: string): QuizNotification {
     return {
       type: "QUIZ",
-      payload: { question: this._context.quizEngine.quizQuestion },
+      payload: { question: this._context.quizEngine.getQuizQuestion(channel) },
     };
   }
 

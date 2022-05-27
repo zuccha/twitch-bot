@@ -6,8 +6,6 @@ import { loadConfig } from "./core/Config";
 import FeatureManager from "./core/FeatureManager";
 import Subscription from "./core/Subscription";
 import { GenericNotification } from "./core/types";
-import QuizFeature from "./features/quiz/QuizFeature";
-import TestFeature from "./features/test/TestFeature";
 import Collection from "./utils/Collection";
 import Failure from "./utils/Failure";
 
@@ -180,7 +178,7 @@ const main = async () => {
 
     subscription.features.forEach((feature) => {
       if (feature.id === featureId) {
-        socket.send(feature.initialNotification);
+        socket.send(feature.getInitialNotification(channel));
       }
     });
   });
