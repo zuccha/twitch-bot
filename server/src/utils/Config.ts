@@ -1,19 +1,38 @@
 import Failure from "./Failure";
 
 export type Config = {
+  /**
+   * Channel hosting the server.
+   *
+   * This is the channel where user will have to run commands in order to sign
+   * up for the different features provided by the bot.
+   */
   channel: string;
 
+  /**
+   * Credentials for the user that bot user that will write in channels' chats.
+   */
   credentials: {
     username: string;
     password: string;
   };
 
+  /**
+   * Address for the client.
+   *
+   * This is needed to allow CORS towards the client if running locally.
+   */
   client: {
     protocol: string;
     host: string;
     port: number;
   };
 
+  /**
+   * Address for exposing the websocket server.
+   *
+   * The websocket server is used to communicate with the client.
+   */
   websocket: {
     protocol: string;
     host: string;
