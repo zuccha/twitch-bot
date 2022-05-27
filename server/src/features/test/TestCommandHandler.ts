@@ -1,8 +1,6 @@
 import { Config } from "../../core/Config";
-import CommandHandler, {
-  Notifier,
-  TwitchInfo,
-} from "../../core/CommandHandler";
+import CommandHandler from "../../core/CommandHandler";
+import { Notifier, TwitchInfo } from "../../core/types";
 import { TestContext, TestNotification } from "./types";
 
 export default class TestCommandHandler extends CommandHandler<

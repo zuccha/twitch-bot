@@ -1,6 +1,5 @@
-import { Notifier, TwitchInfo } from "./CommandHandler";
 import { Config } from "./Config";
-import { GenericNotification } from "./types";
+import { GenericNotification, Notifier, TwitchInfo } from "./types";
 import Collection from "../utils/Collection";
 import FeatureManager, { SupportedFeature } from "./FeatureManager";
 

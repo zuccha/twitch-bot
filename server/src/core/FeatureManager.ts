@@ -2,9 +2,8 @@ import QuizFeature from "../features/quiz/QuizFeature";
 import TestFeature from "../features/test/TestFeature";
 import Collection from "../utils/Collection";
 import Failure from "../utils/Failure";
-import { Notifier } from "./CommandHandler";
 import { Config } from "./Config";
-import { GenericNotification } from "./types";
+import { GenericNotification, Notifier } from "./types";
 
 const SUPPORTED_FEATURES = [QuizFeature, TestFeature] as const;
 

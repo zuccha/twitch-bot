@@ -1,6 +1,6 @@
 import Failure from "../utils/Failure";
-import CommandHandler, { TwitchInfo } from "./CommandHandler";
-import { GenericContext, GenericNotification } from "./types";
+import CommandHandler from "./CommandHandler";
+import { GenericContext, GenericNotification, TwitchInfo } from "./types";
 
 export default abstract class Feature<
   Context extends GenericContext,

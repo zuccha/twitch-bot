@@ -1,6 +1,6 @@
-import { Notifier } from "../../core/CommandHandler";
 import { Config } from "../../core/Config";
 import Feature from "../../core/Feature";
+import { Notifier } from "../../core/types";
 import Failure from "../../utils/Failure";
 import TestCommandHandler from "./TestCommandHandler";
 import { TestContext, TestNotification } from "./types";

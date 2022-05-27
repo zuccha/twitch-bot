@@ -1,21 +1,10 @@
 import { Config } from "./Config";
-import { GenericContext, GenericNotification } from "./types";
-
-export type Notifier<Notification extends GenericNotification> = {
-  notifyTwitch: (channel: string, message: string) => void;
-  notifyWebSocket: (notification: Notification) => void;
-};
-
-export type TwitchInfo = {
-  channel: string;
-  user: {
-    name: string;
-    displayName: string;
-    isMod: boolean;
-    isSubscriber: boolean;
-    isBroadcaster: boolean;
-  };
-};
+import {
+  GenericContext,
+  GenericNotification,
+  Notifier,
+  TwitchInfo,
+} from "./types";
 
 export default abstract class CommandHandler<
   Context extends GenericContext,

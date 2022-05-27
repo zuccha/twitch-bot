@@ -1,10 +1,8 @@
 import { Config } from "../../core/Config";
 import Failure from "../../utils/Failure";
-import CommandHandler, {
-  Notifier,
-  TwitchInfo,
-} from "../../core/CommandHandler";
+import CommandHandler from "../../core/CommandHandler";
 import { QuizContext, QuizNotification } from "./types";
+import { Notifier, TwitchInfo } from "../../core/types";
 
 export default class QuizCommandHandler extends CommandHandler<
   QuizContext,

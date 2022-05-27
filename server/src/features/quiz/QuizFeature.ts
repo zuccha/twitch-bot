@@ -1,6 +1,6 @@
 import { Config } from "../../core/Config";
-import { Notifier } from "../../core/CommandHandler";
 import Feature from "../../core/Feature";
+import { Notifier } from "../../core/types";
 import Failure from "../../utils/Failure";
 import QuizCommandHandler from "./QuizCommandHandler";
 import QuizEngine from "./engine/QuizEngine";
