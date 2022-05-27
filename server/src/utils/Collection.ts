@@ -10,37 +10,38 @@ export default class Collection<T> {
     this._ids = Object.keys(byId);
   }
 
-  byId(id: string): Failure | T {
-    const maybeItem = this._byId[id];
-    return maybeItem
-      ? maybeItem
-      : new Failure("Collection.byId", `Item with id ${id} not found`);
+  get length(): number {
+    return this._ids.length;
+  }
+
+  has(id: string): boolean {
+    return this._byId[id] !== undefined;
+  }
+
+  byId(id: string): T | undefined {
+    return this._byId[id];
   }
 
   ids(): string[] {
     return this._ids;
   }
 
-  add(id: string, item: T): Failure | undefined {
-    if (this._ids.includes(id)) {
-      return new Failure("Collection.add", `Item with id ${id} already exists`);
+  add(id: string, item: T): void {
+    const index = this._ids.indexOf(id);
+    if (index !== -1) {
+      this._ids.splice(index, 1);
     }
 
     this._byId[id] = item;
     this._ids.push(id);
   }
 
-  remove(id: string): Failure | undefined {
-    if (!this._ids.includes(id)) {
-      return new Failure(
-        "Collection.remove",
-        `Item with id ${id} doesn't exist`
-      );
-    }
-
+  remove(id: string): void {
     delete this._byId[id];
-    const idNotEqual = (itemId: string): boolean => itemId !== id;
-    this._ids = this._ids.filter(idNotEqual);
+    const index = this._ids.indexOf(id);
+    if (index !== -1) {
+      this._ids.splice(index, 1);
+    }
   }
 
   random(): Failure | T {

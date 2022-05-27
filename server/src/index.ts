@@ -6,6 +6,7 @@ import { loadConfig } from "./core/Config";
 import { GenericNotification } from "./core/types";
 import QuizFeature from "./features/quiz/QuizFeature";
 import TestFeature from "./features/test/TestFeature";
+import Subscription from "./subscriptions/Subscription";
 import Collection from "./utils/Collection";
 import Failure from "./utils/Failure";
 
@@ -18,7 +19,8 @@ const main = async () => {
 
   const config = loadConfig();
   if (config instanceof Failure) {
-    console.log(config.message);
+    console.log(chalk.red(config.message));
+    console.log(chalk.red("Closing..."));
     return;
   }
 
@@ -42,7 +44,7 @@ const main = async () => {
   };
 
   /**
-   * Initialize websocket server
+   * Initialize WebSocket server
    */
 
   const io = new Server(config.websocket.port, {
@@ -59,10 +61,20 @@ const main = async () => {
   };
 
   /**
-   * Initialize features
+   * Notifier
    */
 
   const notifier = { notifyTwitch, notifyWebSocket };
+
+  /**
+   * Subscriptions
+   */
+
+  const subscriptions = new Collection<Subscription>();
+
+  /**
+   * Feature manager
+   */
 
   const features = new Collection({
     [QuizFeature.ID]: new QuizFeature(config, notifier),
@@ -83,9 +95,30 @@ const main = async () => {
       return;
     }
 
-    features.forEach((feature) => {
-      feature.handleCommand(command, params, info);
-    });
+    if (config.channel !== channel) {
+      const subscription = subscriptions.byId(channel);
+      subscription?.handleCommand(command, params, info);
+      return;
+    }
+
+    if (command === "!join") {
+      if (!subscriptions.has(channel)) {
+        const subscription = new Subscription(channel, config, notifier);
+        subscriptions.add(channel, subscription);
+        notifyTwitch(`${channel} has joined!`);
+      } else {
+        notifyTwitch(`${channel} is already joined!`);
+      }
+    }
+
+    if (command === "!leave") {
+      if (subscriptions.has(channel)) {
+        subscriptions.remove(channel);
+        notifyTwitch(`${channel} has left!`);
+      } else {
+        notifyTwitch(`${channel} is not joined!`);
+      }
+    }
   });
 
   io.on("connection", (socket) => {

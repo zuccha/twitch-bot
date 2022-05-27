@@ -40,7 +40,7 @@ export default class QuizCommandHandler extends CommandHandler<
     params: string[],
     info: TwitchInfo
   ) {
-    if (info.tags.username !== this._config.channel) {
+    if (info.tags.username !== info.channel) {
       const message = "You don't have permissions to start a quiz :(";
       this._notifier.notifyTwitch(message);
       return;
@@ -63,7 +63,7 @@ export default class QuizCommandHandler extends CommandHandler<
   }
 
   private _handleStopQuiz(command: string, params: string[], info: TwitchInfo) {
-    if (info.tags.username !== this._config.channel) {
+    if (info.tags.username !== info.channel) {
       const message = "You don't have permissions to stop the quiz :(";
       this._notifier.notifyTwitch(message);
       return;
