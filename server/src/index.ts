@@ -172,6 +172,8 @@ const main = async () => {
       }
     });
   });
+
+  console.log(chalk.green("Server started!"));
 };
 
 main();
