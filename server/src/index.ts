@@ -3,10 +3,10 @@ import dotenv from "dotenv";
 import { Server } from "socket.io";
 import tmi from "tmi.js";
 import { loadConfig } from "./core/Config";
+import Subscription from "./core/Subscription";
 import { GenericNotification } from "./core/types";
 import QuizFeature from "./features/quiz/QuizFeature";
 import TestFeature from "./features/test/TestFeature";
-import Subscription from "./subscriptions/Subscription";
 import Collection from "./utils/Collection";
 import Failure from "./utils/Failure";
 
@@ -38,8 +38,8 @@ const main = async () => {
 
   await twitch.connect();
 
-  const notifyTwitch = (message: string) => {
-    twitch.say(config.channel, message);
+  const notifyTwitch = (channel: string, message: string) => {
+    twitch.say(channel, message);
     console.log(chalk.hex("#9147FF")(message));
   };
 
@@ -101,30 +101,51 @@ const main = async () => {
       return;
     }
 
+    const username = tags.username;
+    if (!username) {
+      return;
+    }
+
     if (command === "!join") {
-      if (!subscriptions.has(channel)) {
-        const subscription = new Subscription(channel, config, notifier);
-        subscriptions.add(channel, subscription);
-        notifyTwitch(`${channel} has joined!`);
+      if (!subscriptions.has(username)) {
+        const subscription = new Subscription(username, config, notifier);
+        subscriptions.add(username, subscription);
+        twitch.join(username);
+        notifyTwitch(channel, `${username} has joined!`);
       } else {
-        notifyTwitch(`${channel} is already joined!`);
+        notifyTwitch(channel, `${username} is already joined!`);
       }
     }
 
     if (command === "!leave") {
-      if (subscriptions.has(channel)) {
-        subscriptions.remove(channel);
-        notifyTwitch(`${channel} has left!`);
+      if (subscriptions.has(username)) {
+        subscriptions.remove(username);
+        twitch.part(username);
+        notifyTwitch(channel, `${username} has left!`);
       } else {
-        notifyTwitch(`${channel} is not joined!`);
+        notifyTwitch(channel, `${username} is not joined!`);
       }
     }
   });
 
   io.on("connection", (socket) => {
-    const id = socket.handshake.query["id"];
-    features.forEach((feature) => {
-      if (feature.id === id) {
+    const channel = socket.handshake.query["channel"];
+    if (typeof channel !== "string") {
+      return;
+    }
+
+    const featureId = socket.handshake.query["featureId"];
+    if (typeof featureId !== "string") {
+      return;
+    }
+
+    const subscription = subscriptions.byId(channel);
+    if (!subscription) {
+      return;
+    }
+
+    subscription.features.forEach((feature) => {
+      if (feature.id === featureId) {
         socket.send(feature.initialNotification);
       }
     });

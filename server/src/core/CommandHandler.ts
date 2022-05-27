@@ -3,7 +3,7 @@ import { Config } from "./Config";
 import { GenericContext, GenericNotification } from "./types";
 
 export type Notifier<Notification extends GenericNotification> = {
-  notifyTwitch: (message: string) => void;
+  notifyTwitch: (channel: string, message: string) => void;
   notifyWebSocket: (notification: Notification) => void;
 };
 

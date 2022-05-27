@@ -42,20 +42,20 @@ export default class QuizCommandHandler extends CommandHandler<
   ) {
     if (info.tags.username !== info.channel) {
       const message = "You don't have permissions to start a quiz :(";
-      this._notifier.notifyTwitch(message);
+      this._notifier.notifyTwitch(info.channel, message);
       return;
     }
 
     const quizOrFailure = this._context.quizEngine.startQuiz();
     if (quizOrFailure instanceof Failure) {
-      this._notifier.notifyTwitch(quizOrFailure.message);
+      this._notifier.notifyTwitch(info.channel, quizOrFailure.message);
       return;
     }
 
     const question = quizOrFailure.question;
 
     const message = `Quiz time! ${question} Answer with !answer <value>`;
-    this._notifier.notifyTwitch(message);
+    this._notifier.notifyTwitch(info.channel, message);
     this._notifier.notifyWebSocket({
       type: "QUIZ_STARTED",
       payload: { question },
@@ -65,18 +65,18 @@ export default class QuizCommandHandler extends CommandHandler<
   private _handleStopQuiz(command: string, params: string[], info: TwitchInfo) {
     if (info.tags.username !== info.channel) {
       const message = "You don't have permissions to stop the quiz :(";
-      this._notifier.notifyTwitch(message);
+      this._notifier.notifyTwitch(info.channel, message);
       return;
     }
 
     const answerOrFailure = this._context.quizEngine.stopQuiz();
     if (answerOrFailure instanceof Failure) {
-      this._notifier.notifyTwitch(answerOrFailure.message);
+      this._notifier.notifyTwitch(info.channel, answerOrFailure.message);
       return;
     }
 
     const message = `Nobody guessed the correct answer, it was "${answerOrFailure}"!`;
-    this._notifier.notifyTwitch(message);
+    this._notifier.notifyTwitch(info.channel, message);
     this._notifier.notifyWebSocket({
       type: "QUIZ_ENDED",
       payload: { answer: answerOrFailure },
@@ -93,17 +93,18 @@ export default class QuizCommandHandler extends CommandHandler<
 
     const resultOrFailure = this._context.quizEngine.evaluateQuizAnswer(answer);
     if (resultOrFailure instanceof Failure) {
-      this._notifier.notifyTwitch(resultOrFailure.message);
+      this._notifier.notifyTwitch(info.channel, resultOrFailure.message);
       return;
     }
 
     if (resultOrFailure === undefined) {
-      this._notifier.notifyTwitch(`Wrong ${user}! Give it another try :)`);
+      const message = `Wrong ${user}! Give it another try :)`;
+      this._notifier.notifyTwitch(info.channel, message);
       return;
     }
 
     const message = `You guessed it ${user}, the answer was "${resultOrFailure}"!`;
-    this._notifier.notifyTwitch(message);
+    this._notifier.notifyTwitch(info.channel, message);
     this._notifier.notifyWebSocket({
       type: "QUIZ_GUESSED",
       payload: { answer: resultOrFailure },
@@ -111,10 +112,13 @@ export default class QuizCommandHandler extends CommandHandler<
   }
 
   private _handleHelpQuiz(command: string, params: string[], info: TwitchInfo) {
-    this._notifier.notifyTwitch(`Usage:
+    this._notifier.notifyTwitch(
+      info.channel,
+      `Usage:
  • !quiz: starts a quiz
  • !quiz-stop - stops the current quiz
  • !answer <value> - answers the current quiz question
- • !quiz-help - print this message`);
+ • !quiz-help - print this message`
+    );
   }
 }
