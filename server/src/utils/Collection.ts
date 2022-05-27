@@ -65,4 +65,9 @@ export default class Collection<T> {
   map<R>(fn: (item: T) => R): R[] {
     return this._ids.map((id) => fn(this._byId[id]!));
   }
+
+  clear(): void {
+    this._byId = {};
+    this._ids = [];
+  }
 }

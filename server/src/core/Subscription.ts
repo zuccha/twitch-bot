@@ -1,28 +1,27 @@
 import { Notifier, TwitchInfo } from "./CommandHandler";
 import { Config } from "./Config";
 import { GenericNotification } from "./types";
-import QuizFeature from "../features/quiz/QuizFeature";
-import TestFeature from "../features/test/TestFeature";
 import Collection from "../utils/Collection";
-
-const SUPPORTED_FEATURES = [QuizFeature, TestFeature] as const;
-type SupportedFeatures = QuizFeature | TestFeature;
+import FeatureManager, { SupportedFeature } from "./FeatureManager";
 
 export default class Subscription {
   private _channel: string;
   private _config: Config;
   private _notifier: Notifier<GenericNotification>;
+  private _featureManager: FeatureManager;
 
-  private _features: Collection<SupportedFeatures>;
+  private _features: Collection<SupportedFeature>;
 
   constructor(
     channel: string,
     config: Config,
-    notifier: Notifier<GenericNotification>
+    notifier: Notifier<GenericNotification>,
+    featureManager: FeatureManager
   ) {
     this._channel = channel;
     this._config = config;
     this._notifier = notifier;
+    this._featureManager = featureManager;
 
     this._features = new Collection();
   }
@@ -59,39 +58,30 @@ export default class Subscription {
   }
 
   private _handleAddFeature(id: string) {
-    SUPPORTED_FEATURES.forEach((SupportedFeature) => {
-      if (id === SupportedFeature.ID) {
-        const feature = new SupportedFeature(this._config, this._notifier);
-        this._features.add(SupportedFeature.ID, feature);
-      }
-    });
-    const message = `Feature "${id}" added!`;
-    this._notifier.notifyTwitch(this._channel, message);
+    const feature = this._featureManager.get(id);
+    if (feature) {
+      this._features.add(id, feature);
+      const message = `Feature "${id}" added!`;
+      this._notifier.notifyTwitch(this._channel, message);
+    }
   }
 
   private _handleAddAllFeatures() {
-    SUPPORTED_FEATURES.forEach((SupportedFeature) => {
-      const feature = new SupportedFeature(this._config, this._notifier);
-      this._features.add(SupportedFeature.ID, feature);
+    this._featureManager.forEach((feature) => {
+      this._features.add(feature.id, feature);
     });
     const message = `All features added!`;
     this._notifier.notifyTwitch(this._channel, message);
   }
 
   private _handleRemoveFeature(id: string) {
-    SUPPORTED_FEATURES.forEach((SupportedFeature) => {
-      if (id === SupportedFeature.ID) {
-        this._features.remove(SupportedFeature.ID);
-      }
-    });
+    this._features.remove(id);
     const message = `Feature "${id}" removed!`;
     this._notifier.notifyTwitch(this._channel, message);
   }
 
   private _handleRemoveAllFeatures() {
-    SUPPORTED_FEATURES.forEach((SupportedFeature) => {
-      this._features.remove(SupportedFeature.ID);
-    });
+    this._features.clear();
     const message = `All features removed!`;
     this._notifier.notifyTwitch(this._channel, message);
   }

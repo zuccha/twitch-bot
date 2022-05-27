@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import { Server } from "socket.io";
 import tmi from "tmi.js";
 import { loadConfig } from "./core/Config";
+import FeatureManager from "./core/FeatureManager";
 import Subscription from "./core/Subscription";
 import { GenericNotification } from "./core/types";
 import QuizFeature from "./features/quiz/QuizFeature";
@@ -13,6 +14,8 @@ import Failure from "./utils/Failure";
 dotenv.config({ path: "../.env" });
 
 const main = async () => {
+  let maybeFailure: Failure | undefined;
+
   /**
    * Load config
    */
@@ -67,21 +70,23 @@ const main = async () => {
   const notifier = { notifyTwitch, notifyWebSocket };
 
   /**
+   * Feature manager
+   */
+
+  const featureManager = new FeatureManager(config, notifier);
+
+  maybeFailure = await featureManager.setup();
+  if (maybeFailure) {
+    console.log(chalk.red(maybeFailure.message));
+    console.log(chalk.red("Closing..."));
+    return;
+  }
+
+  /**
    * Subscriptions
    */
 
   const subscriptions = new Collection<Subscription>();
-
-  /**
-   * Feature manager
-   */
-
-  const features = new Collection({
-    [QuizFeature.ID]: new QuizFeature(config, notifier),
-    [TestFeature.ID]: new TestFeature(config, notifier),
-  });
-
-  await Promise.all(features.map((feature) => feature.setup()));
 
   /**
    * Setup listeners
@@ -108,7 +113,12 @@ const main = async () => {
 
     if (command === "!join") {
       if (!subscriptions.has(username)) {
-        const subscription = new Subscription(username, config, notifier);
+        const subscription = new Subscription(
+          username,
+          config,
+          notifier,
+          featureManager
+        );
         subscriptions.add(username, subscription);
         twitch.join(username);
         notifyTwitch(channel, `${username} has joined!`);
