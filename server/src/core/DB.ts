@@ -57,27 +57,43 @@ GROUP BY ${DB.FEATURES_TABLE}.channel`;
   }
 
   addUser($channel: string): void {
-    const insertUserQuery = `INSERT INTO ${DB.USERS_TABLE} (channel) VALUES ($channel)`;
-    this._db.run(insertUserQuery, { $channel });
+    try {
+      const insertUserQuery = `INSERT INTO ${DB.USERS_TABLE} (channel) VALUES ($channel)`;
+      this._db.run(insertUserQuery, { $channel });
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   removeUser($channel: string): void {
-    this._db.serialize(() => {
-      const removeUserQuery = `DELETE FROM ${DB.USERS_TABLE} WHERE channel = $channel`;
-      this._db.run(removeUserQuery, { $channel });
+    try {
+      this._db.serialize(() => {
+        const removeUserQuery = `DELETE FROM ${DB.USERS_TABLE} WHERE channel = $channel`;
+        this._db.run(removeUserQuery, { $channel });
 
-      const removeFeatureQuery = `DELETE FROM ${DB.FEATURES_TABLE} WHERE channel = $channel`;
-      this._db.run(removeFeatureQuery, { $channel });
-    });
+        const removeFeatureQuery = `DELETE FROM ${DB.FEATURES_TABLE} WHERE channel = $channel`;
+        this._db.run(removeFeatureQuery, { $channel });
+      });
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   addFeatureToUser($channel: string, $featureId: string): void {
-    const addFeatureQuery = `INSERT INTO ${DB.FEATURES_TABLE} (channel, featureId) VALUES ($channel, $featureId)`;
-    this._db.run(addFeatureQuery, { $channel, $featureId });
+    try {
+      const addFeatureQuery = `INSERT INTO ${DB.FEATURES_TABLE} (channel, featureId) VALUES ($channel, $featureId)`;
+      this._db.run(addFeatureQuery, { $channel, $featureId });
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   removeFeatureFromUser($channel: string, $featureId: string): void {
-    const removeFeatureQuery = `DELETE FROM ${DB.FEATURES_TABLE} WHERE channel = $channel AND featureId = $featureId`;
-    this._db.run(removeFeatureQuery, { $channel, $featureId });
+    try {
+      const removeFeatureQuery = `DELETE FROM ${DB.FEATURES_TABLE} WHERE channel = $channel AND featureId = $featureId`;
+      this._db.run(removeFeatureQuery, { $channel, $featureId });
+    } catch (error) {
+      console.log(error);
+    }
   }
 }

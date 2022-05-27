@@ -7,8 +7,14 @@ export type Notifier<Notification extends GenericNotification> = {
   notifyWebSocket: (notification: Notification) => void;
 };
 
+export type TwitchSession = {
+  join: (channel: string) => Promise<unknown>;
+  part: (channel: string) => Promise<unknown>;
+};
+
 export type TwitchInfo = {
   channel: string;
+  isUserChannel: boolean;
   user: {
     name: string;
     displayName: string;
