@@ -15,13 +15,13 @@ export default abstract class Feature<
     this._context = context;
   }
 
-  abstract setup(): Promise<Failure | undefined>;
-
-  protected abstract get initialNotification(): Notification;
-
-  getInitialNotification(id: string): Notification | undefined {
-    return id === this._id ? this.initialNotification : undefined;
+  get id(): string {
+    return this._id;
   }
+
+  abstract get initialNotification(): Notification;
+
+  abstract setup(): Promise<Failure | undefined>;
 
   handleCommand(command: string, params: string[], info: TwitchInfo): void {
     this._commandHandler.handle(command, params, info);

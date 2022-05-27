@@ -90,14 +90,9 @@ const main = async () => {
 
   io.on("connection", (socket) => {
     const id = socket.handshake.query["id"];
-    if (typeof id !== "string") {
-      return;
-    }
-
     features.forEach((feature) => {
-      const notification = feature.getInitialNotification(id);
-      if (notification) {
-        socket.send(notification);
+      if (feature.id === id) {
+        socket.send(feature.initialNotification);
       }
     });
   });
