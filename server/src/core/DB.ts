@@ -1,35 +1,24 @@
+import chalk from "chalk";
 import sqlite3 from "sqlite3";
 import Failure from "../utils/Failure";
 import Logger from "../utils/Logger";
 
 const sqlite3Verbose = sqlite3.verbose();
 
-const DBUtils = {
-  error: (err: Error | null) => {
-    if (err) {
-      Logger.error(err.message);
-    }
-  },
+const CREATE_USERS_TABLE = `CREATE TABLE IF NOT EXISTS users (channel TEXT PRIMARY KEY)`;
+const INSERT_USER = `INSERT INTO users (channel) VALUES ($channel)`;
+const DELETE_USER_BY_CHANNEL = `DELETE FROM users WHERE channel = $channel`;
 
-  each: <T>(
-    db: sqlite3.Database,
-    query: string,
-    mapRow: (row: any) => T = (row) => row
-  ): Promise<T[] | Failure> => {
-    return new Promise((resolve) => {
-      const items: T[] = [];
-      db.each(
-        query,
-        (err, row) =>
-          err
-            ? resolve(new Failure("DB.each", err.message))
-            : items.push(mapRow(row)),
-        (err) =>
-          err ? resolve(new Failure("DB.each", err.message)) : resolve(items)
-      );
-    });
-  },
-};
+const CREATE_FEATURES_TABLE = `CREATE TABLE IF NOT EXISTS features (channel TEXT, featureId TEXT, PRIMARY KEY (channel, featureId))`;
+const INSERT_FEATURE = `INSERT INTO features (channel, featureId) VALUES ($channel, $featureId)`;
+const DELETE_FEATURE_BY_CHANNEL = `DELETE FROM features WHERE channel = $channel`;
+const DELETE_FEATURE_BY_CHANNEL_AND_FEATURE_ID = `DELETE FROM features WHERE channel = $channel AND featureId = $featureId`;
+
+const GET_USERS_WITH_FEATURES = `\
+SELECT users.channel, group_concat(features.featureId) AS featureIds
+FROM users
+LEFT OUTER JOIN features ON users.channel = features.channel
+GROUP BY features.channel`;
 
 export default class DB {
   static USERS_TABLE = "users";
@@ -38,53 +27,85 @@ export default class DB {
   _db: sqlite3.Database;
 
   constructor(filename: string) {
-    this._db = new sqlite3Verbose.Database(filename);
+    const handleError = DB._makeHandleError(`DB: ${filename}`);
+
+    this._db = new sqlite3Verbose.Database(filename, handleError);
 
     this._db.serialize(() => {
-      const createUsersTableQuery = `CREATE TABLE IF NOT EXISTS ${DB.USERS_TABLE} (channel TEXT PRIMARY KEY)`;
-      this._db.run(createUsersTableQuery, DBUtils.error);
-
-      const createFeaturesTableQuery = `CREATE TABLE IF NOT EXISTS ${DB.FEATURES_TABLE} (channel TEXT, featureId TEXT, PRIMARY KEY (channel, featureId))`;
-      this._db.run(createFeaturesTableQuery, DBUtils.error);
+      this._db.run(CREATE_USERS_TABLE, handleError);
+      this._db.run(CREATE_FEATURES_TABLE, handleError);
     });
   }
 
   async getUsers(): Promise<
     { channel: string; featureIds: string[] }[] | Failure
   > {
-    const getChannelsQuery = `\
-SELECT ${DB.USERS_TABLE}.channel, group_concat(${DB.FEATURES_TABLE}.featureId) AS featureIds
-FROM ${DB.USERS_TABLE}
-LEFT OUTER JOIN ${DB.FEATURES_TABLE} ON ${DB.USERS_TABLE}.channel = ${DB.FEATURES_TABLE}.channel
-GROUP BY ${DB.FEATURES_TABLE}.channel`;
-    return DBUtils.each(this._db, getChannelsQuery, (row) => ({
+    return DB._each(this._db, GET_USERS_WITH_FEATURES, (row) => ({
       channel: row.channel,
       featureIds: row.featureIds ? row.featureIds.split(",") : [],
     }));
   }
 
   addUser($channel: string): void {
-    const insertUserQuery = `INSERT INTO ${DB.USERS_TABLE} (channel) VALUES ($channel)`;
-    this._db.run(insertUserQuery, { $channel }, DBUtils.error);
+    const handleError = DB._makeHandleError(`Channel: ${$channel}`);
+
+    this._db.run(INSERT_USER, { $channel }, handleError);
   }
 
   removeUser($channel: string): void {
-    this._db.serialize(() => {
-      const removeUserQuery = `DELETE FROM ${DB.USERS_TABLE} WHERE channel = $channel`;
-      this._db.run(removeUserQuery, { $channel }, DBUtils.error);
+    const handleError = DB._makeHandleError(`Channel: ${$channel}`);
 
-      const removeFeatureQuery = `DELETE FROM ${DB.FEATURES_TABLE} WHERE channel = $channel`;
-      this._db.run(removeFeatureQuery, { $channel }, DBUtils.error);
+    this._db.serialize(() => {
+      this._db.run(DELETE_USER_BY_CHANNEL, { $channel }, handleError);
+      this._db.run(DELETE_FEATURE_BY_CHANNEL, { $channel }, handleError);
     });
   }
 
   addFeatureToUser($channel: string, $featureId: string): void {
-    const addFeatureQuery = `INSERT INTO ${DB.FEATURES_TABLE} (channel, featureId) VALUES ($channel, $featureId)`;
-    this._db.run(addFeatureQuery, { $channel, $featureId }, DBUtils.error);
+    const errorMessage = `Channel: ${$channel} | Feature: ${$featureId}`;
+    const handleError = DB._makeHandleError(errorMessage);
+
+    this._db.run(INSERT_FEATURE, { $channel, $featureId }, handleError);
   }
 
   removeFeatureFromUser($channel: string, $featureId: string): void {
-    const removeFeatureQuery = `DELETE FROM ${DB.FEATURES_TABLE} WHERE channel = $channel AND featureId = $featureId`;
-    this._db.run(removeFeatureQuery, { $channel, $featureId }, DBUtils.error);
+    const errorMessage = `Channel: ${$channel} | Feature: ${$featureId}`;
+    const handleError = DB._makeHandleError(errorMessage);
+
+    this._db.run(
+      DELETE_FEATURE_BY_CHANNEL_AND_FEATURE_ID,
+      { $channel, $featureId },
+      handleError
+    );
+  }
+
+  private static _makeHandleError =
+    (message: string) => (err: Error | null) => {
+      if (err) {
+        Logger.error(chalk.hex("#FFC0CB")(message));
+        Logger.error(err.message);
+      }
+    };
+
+  private static _each<T>(
+    db: sqlite3.Database,
+    query: string,
+    mapRow: (row: any) => T = (row) => row
+  ): Promise<T[] | Failure> {
+    return new Promise((resolve) => {
+      const items: T[] = [];
+
+      const handleCallback = (error: Error | null, row: any) =>
+        error
+          ? resolve(new Failure("DB._each", error.message))
+          : items.push(mapRow(row));
+
+      const handleComplete = (error: Error | null) =>
+        error
+          ? resolve(new Failure("DB._each", error.message))
+          : resolve(items);
+
+      db.each(query, handleCallback, handleComplete);
+    });
   }
 }
