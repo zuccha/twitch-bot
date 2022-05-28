@@ -22,6 +22,15 @@ export default class Collection<T> {
     return this._byId[id];
   }
 
+  byIdOrFail(id: string): T | Failure {
+    const maybeItem = this._byId[id];
+    if (!maybeItem) {
+      const message = `Item with id "${id}" was not found`;
+      return new Failure("Collection.byIdOrFail", message);
+    }
+    return maybeItem;
+  }
+
   ids(): string[] {
     return this._ids;
   }

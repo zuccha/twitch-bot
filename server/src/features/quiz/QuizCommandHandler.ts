@@ -44,7 +44,10 @@ export default class QuizCommandHandler extends CommandHandler<
       return;
     }
 
-    const quizOrFailure = this._context.quizEngine.startQuiz(info.user.name);
+    const quizOrFailure = this._context.quizEngine.startQuiz(
+      info.user.name,
+      params[0]
+    );
     if (quizOrFailure instanceof Failure) {
       this._notifier.notifyTwitch(info.channel, quizOrFailure.message);
       return;

@@ -31,14 +31,21 @@ export default class QuizEngine {
     return this._quizzes.byId(id)?.question;
   }
 
-  startQuiz(id: string): Failure | Quiz {
+  startQuiz(id: string, quizGeneratorId?: string): Failure | Quiz {
     const quiz = this._quizzes.byId(id);
 
     if (quiz) {
       return new Failure("Engine.startQuiz", "A quiz is already in progress");
     }
 
-    const quizGeneratorOrFailure = this._quizGenerators.random();
+    if (quizGeneratorId && !this._quizGenerators.has(quizGeneratorId)) {
+      const message = `Invalid quiz "${quizGeneratorId}"`;
+      return new Failure("Engine.startQuiz", message);
+    }
+
+    const quizGeneratorOrFailure = quizGeneratorId
+      ? this._quizGenerators.byIdOrFail(quizGeneratorId)!
+      : this._quizGenerators.random();
     if (quizGeneratorOrFailure instanceof Failure) {
       return quizGeneratorOrFailure.extend(
         "Engine.startQuiz",
