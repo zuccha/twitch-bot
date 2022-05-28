@@ -28,11 +28,11 @@ export default class QuizEngine {
   }
 
   getQuizQuestion(id: string): string | undefined {
-    return this._quizzes.byId(id)?.question;
+    return this._quizzes.get(id)?.question;
   }
 
   startQuiz(id: string, quizGeneratorId?: string): Failure | Quiz {
-    const quiz = this._quizzes.byId(id);
+    const quiz = this._quizzes.get(id);
 
     if (quiz) {
       return new Failure("Engine.startQuiz", "A quiz is already in progress");
@@ -44,7 +44,7 @@ export default class QuizEngine {
     }
 
     const quizGeneratorOrFailure = quizGeneratorId
-      ? this._quizGenerators.byIdOrFail(quizGeneratorId)!
+      ? this._quizGenerators.getOrFail(quizGeneratorId)!
       : this._quizGenerators.random();
     if (quizGeneratorOrFailure instanceof Failure) {
       return quizGeneratorOrFailure.extend(
@@ -66,7 +66,7 @@ export default class QuizEngine {
   }
 
   stopQuiz(id: string): Failure | string {
-    const quiz = this._quizzes.byId(id);
+    const quiz = this._quizzes.get(id);
 
     if (!quiz) {
       return new Failure("Engine.stopQuiz", "No quiz is in progress");
@@ -79,7 +79,7 @@ export default class QuizEngine {
   }
 
   evaluateQuizAnswer(id: string, answer: string): Failure | string | undefined {
-    const quiz = this._quizzes.byId(id);
+    const quiz = this._quizzes.get(id);
 
     if (!quiz) {
       return new Failure("Engine.evaluateQuizAnswer", "No quiz is in progress");

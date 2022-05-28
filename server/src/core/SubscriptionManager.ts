@@ -50,13 +50,13 @@ export default class SubscriptionManager {
   }
 
   get(channel: string): Subscription | undefined {
-    return this._subscriptions.byId(channel);
+    return this._subscriptions.get(channel);
   }
 
   handleCommand(command: string, params: string[], info: TwitchInfo): void {
     // The message comes from a channel of a user subscribed to the bot
     if (info.isUserChannel) {
-      const subscription = this._subscriptions.byId(info.user.name);
+      const subscription = this._subscriptions.get(info.user.name);
       subscription?.handleCommand(command, params, info);
       return;
     }
@@ -93,7 +93,7 @@ export default class SubscriptionManager {
 
   private _handleLeave(info: TwitchInfo): void {
     if (this._subscriptions.has(info.user.name)) {
-      const subscription = this._subscriptions.byId(info.user.name);
+      const subscription = this._subscriptions.get(info.user.name);
       subscription?.clear();
 
       this._subscriptions.remove(info.user.name);

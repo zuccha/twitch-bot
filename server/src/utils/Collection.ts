@@ -18,15 +18,15 @@ export default class Collection<T> {
     return this._byId[id] !== undefined;
   }
 
-  byId(id: string): T | undefined {
+  get(id: string): T | undefined {
     return this._byId[id];
   }
 
-  byIdOrFail(id: string): T | Failure {
+  getOrFail(id: string): T | Failure {
     const maybeItem = this._byId[id];
     if (!maybeItem) {
       const message = `Item with id "${id}" was not found`;
-      return new Failure("Collection.byIdOrFail", message);
+      return new Failure("Collection.getOrFail", message);
     }
     return maybeItem;
   }

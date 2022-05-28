@@ -22,7 +22,7 @@ export default class FeatureManager {
   }
 
   get(id: string): SupportedFeature | undefined {
-    return this._features.byId(id);
+    return this._features.get(id);
   }
 
   forEach(callback: (feature: SupportedFeature) => void) {
