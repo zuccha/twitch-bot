@@ -136,7 +136,6 @@ export default class QuizPersistence {
       return new Failure("QuizPersistence.getLeaderboard", message);
     }
 
-    console.log(result.value);
     const scoreRow = leaderboardRowSchema.parse(result.value);
     return {
       positions: scoreRow.map((row) => ({
@@ -146,4 +145,3 @@ export default class QuizPersistence {
     };
   }
 }
-//
