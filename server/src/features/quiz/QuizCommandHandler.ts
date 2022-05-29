@@ -1,19 +1,25 @@
 import { Config } from "../../core/Config";
-import Failure from "../../utils/Failure";
 import CommandHandler from "../../core/CommandHandler";
-import { QuizContext, QuizNotification } from "./types";
+import DB from "../../core/DB";
 import { Notifier, TwitchInfo } from "../../core/types";
+import Failure from "../../utils/Failure";
+import QuizPersistence from "./QuizPersistence";
+import { Leaderboard, QuizContext, QuizNotification } from "./types";
 
 export default class QuizCommandHandler extends CommandHandler<
   QuizContext,
   QuizNotification
 > {
+  private _persistence: QuizPersistence;
+
   constructor(
     context: QuizContext,
     config: Config,
-    notifier: Notifier<QuizNotification>
+    notifier: Notifier<QuizNotification>,
+    db: DB
   ) {
     super(context, config, notifier);
+    this._persistence = new QuizPersistence(db);
   }
 
   handle(command: string, params: string[], info: TwitchInfo): void {
@@ -26,6 +32,12 @@ export default class QuizCommandHandler extends CommandHandler<
         break;
       case "!answer":
         this._handleAnswerQuiz(command, params, info);
+        break;
+      case "!quiz-score":
+        this._handleGetScore(command, params, info);
+        break;
+      case "!quiz-leaderboard":
+        this._handleGetLeaderboard(command, params, info);
         break;
       case "!quiz-help":
         this._handleHelpQuiz(command, params, info);
@@ -107,11 +119,55 @@ export default class QuizCommandHandler extends CommandHandler<
     }
 
     const message = `You guessed it ${info.user.displayName}, the answer was "${resultOrFailure}"!`;
+    this._persistence.incrementScore(info.channel, info.user.name, 1);
     this._notifier.notifyTwitch(info.channel, message);
     this._notifier.notifyWebSocket({
       type: "QUIZ_GUESSED",
       payload: { answer: resultOrFailure },
     });
+  }
+
+  private async _handleGetScore(
+    command: string,
+    params: string[],
+    info: TwitchInfo
+  ) {
+    const score =
+      params[0] === "global"
+        ? await this._persistence.getGlobalScore(info.user.name)
+        : await this._persistence.getChannelScore(info.channel, info.user.name);
+    if (score instanceof Failure) {
+      this._notifier.notifyTwitch(info.channel, score.message);
+      return;
+    }
+
+    const message =
+      params[0] === "global"
+        ? `@${info.user.displayName}, your current global score is ${score}`
+        : `@${info.user.displayName}, your current score is ${score}`;
+    this._notifier.notifyTwitch(info.channel, message);
+  }
+
+  private async _handleGetLeaderboard(
+    command: string,
+    params: string[],
+    info: TwitchInfo
+  ) {
+    const leaderboard =
+      params[0] === "global"
+        ? await this._persistence.getGlobalLeaderboard()
+        : await this._persistence.getChannelLeaderboard(info.channel);
+    if (leaderboard instanceof Failure) {
+      this._notifier.notifyTwitch(info.channel, leaderboard.message);
+      return;
+    }
+
+    const formattedLeaderboard = this._formatLeaderboard(leaderboard);
+    const message =
+      params[0] === "global"
+        ? `Global leaderboard: ${formattedLeaderboard}`
+        : `Leaderboard: ${formattedLeaderboard}`;
+    this._notifier.notifyTwitch(info.channel, message);
   }
 
   private _handleHelpQuiz(command: string, params: string[], info: TwitchInfo) {
@@ -121,7 +177,20 @@ export default class QuizCommandHandler extends CommandHandler<
  • !quiz: starts a quiz
  • !quiz-stop - stops the current quiz
  • !answer <value> - answers the current quiz question
+ • !quiz-score [global] - get you channel or global score
+ • !quiz-leaderboard [global] - get the channel or global leaderboard
  • !quiz-help - print this message`
+    );
+  }
+
+  private _formatLeaderboard(leaderboard: Leaderboard): string {
+    return (
+      leaderboard.positions
+        .map((position, index) => {
+          const usernames = position.usernames.join(", ");
+          return `${index + 1}. ${usernames} (${position.score})`;
+        })
+        .join(" ") || "No one has played yet :("
     );
   }
 }

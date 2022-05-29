@@ -7,3 +7,12 @@ export type QuizNotification =
   | { type: "QUIZ_STARTED"; payload: { question: string } }
   | { type: "QUIZ_ENDED"; payload: { answer: string } }
   | { type: "QUIZ_GUESSED"; payload: { answer: string } };
+
+export type LeaderboardPosition = {
+  score: number;
+  usernames: string[];
+};
+
+export type Leaderboard = {
+  positions: LeaderboardPosition[];
+};

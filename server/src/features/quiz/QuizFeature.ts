@@ -5,6 +5,7 @@ import Failure from "../../utils/Failure";
 import QuizCommandHandler from "./QuizCommandHandler";
 import QuizEngine from "./engine/QuizEngine";
 import { QuizContext, QuizNotification } from "./types";
+import DB from "../../core/DB";
 
 export default class QuizFeature extends Feature<
   QuizContext,
@@ -14,10 +15,15 @@ export default class QuizFeature extends Feature<
 
   protected _commandHandler: QuizCommandHandler;
 
-  constructor(config: Config, notifier: Notifier<QuizNotification>) {
+  constructor(config: Config, notifier: Notifier<QuizNotification>, db: DB) {
     const context = { quizEngine: new QuizEngine() };
     super(QuizFeature.ID, context);
-    this._commandHandler = new QuizCommandHandler(context, config, notifier);
+    this._commandHandler = new QuizCommandHandler(
+      context,
+      config,
+      notifier,
+      db
+    );
   }
 
   getInitialNotification(channel: string): QuizNotification {

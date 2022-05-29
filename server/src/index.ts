@@ -83,7 +83,7 @@ const main = async () => {
    * Feature manager
    */
 
-  const featureManager = new FeatureManager(config, notifier);
+  const featureManager = new FeatureManager(config, notifier, db);
 
   maybeFailure = await featureManager.setup();
   if (maybeFailure) {
