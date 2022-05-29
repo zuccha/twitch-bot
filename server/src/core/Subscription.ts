@@ -1,28 +1,27 @@
-import { Config } from "./Config";
 import { GenericNotification, Notifier, TwitchInfo } from "./types";
 import Collection from "../utils/Collection";
 import FeatureManager, { SupportedFeature } from "./FeatureManager";
-import DB from "./DB";
+import SubscriptionPersistence from "./SubscriptionPersistence";
 
 export default class Subscription {
   private _channel: string;
   private _notifier: Notifier<GenericNotification>;
   private _featureManager: FeatureManager;
-  private _db: DB;
 
   private _features: Collection<SupportedFeature>;
+  private _persistence: SubscriptionPersistence;
 
   constructor(
     channel: string,
     notifier: Notifier<GenericNotification>,
     featureManager: FeatureManager,
-    db: DB,
+    persistence: SubscriptionPersistence,
     featureIds: string[] = []
   ) {
     this._channel = channel;
     this._notifier = notifier;
     this._featureManager = featureManager;
-    this._db = db;
+    this._persistence = persistence;
 
     this._features = new Collection();
     featureIds.forEach((id) => {
@@ -71,7 +70,7 @@ export default class Subscription {
   clear() {
     this._features.forEach((feature) => {
       feature.removeChannel(this._channel);
-      this._db.removeFeatureFromUser(this._channel, feature.id);
+      this._persistence.removeFeatureFromUser(this._channel, feature.id);
     });
     this._features.clear();
   }
@@ -86,7 +85,7 @@ export default class Subscription {
     const feature = this._featureManager.get(id);
     if (feature && !this._features.has(id)) {
       this._features.add(id, feature);
-      this._db.addFeatureToUser(this._channel, id);
+      this._persistence.addFeatureToUser(this._channel, id);
       feature.addChannel(this._channel);
       const message = `Feature "${id}" added!`;
       this._notifier.notifyTwitch(this._channel, message);
@@ -97,7 +96,7 @@ export default class Subscription {
     this._featureManager.forEach((feature) => {
       if (!this._features.has(feature.id)) {
         this._features.add(feature.id, feature);
-        this._db.addFeatureToUser(this._channel, feature.id);
+        this._persistence.addFeatureToUser(this._channel, feature.id);
         feature.addChannel(this._channel);
       }
     });
@@ -109,7 +108,7 @@ export default class Subscription {
     const feature = this._featureManager.get(id);
     if (feature && this._features.has(id)) {
       feature.removeChannel(this._channel);
-      this._db.removeFeatureFromUser(this._channel, feature.id);
+      this._persistence.removeFeatureFromUser(this._channel, feature.id);
       this._features.remove(id);
     }
     const message = `Feature "${id}" removed!`;

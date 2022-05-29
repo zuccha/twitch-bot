@@ -34,13 +34,8 @@ const main = async () => {
    * Initialize Twitch client
    */
 
-  const users = await db.getUsers();
-  if (users instanceof Failure) {
-    return Logger.fail(users);
-  }
-
   const twitch = new tmi.Client({
-    channels: [config.channel, ...users.map((user) => user.channel)],
+    channels: [config.channel],
     identity: {
       username: config.credentials.username,
       password: config.credentials.password,

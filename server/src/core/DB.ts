@@ -1,111 +1,66 @@
 import chalk from "chalk";
 import sqlite3 from "sqlite3";
-import Failure from "../utils/Failure";
 import Logger from "../utils/Logger";
 
 const sqlite3Verbose = sqlite3.verbose();
 
-const CREATE_USERS_TABLE = `CREATE TABLE IF NOT EXISTS users (channel TEXT PRIMARY KEY)`;
-const INSERT_USER = `INSERT INTO users (channel) VALUES ($channel)`;
-const DELETE_USER_BY_CHANNEL = `DELETE FROM users WHERE channel = $channel`;
+type ResultError = { error: Error };
+type ResultValue<T> = { value: T };
+type Result<T> = ResultError | ResultValue<T>;
 
-const CREATE_FEATURES_TABLE = `CREATE TABLE IF NOT EXISTS features (channel TEXT, featureId TEXT, PRIMARY KEY (channel, featureId))`;
-const INSERT_FEATURE = `INSERT INTO features (channel, featureId) VALUES ($channel, $featureId)`;
-const DELETE_FEATURE_BY_CHANNEL = `DELETE FROM features WHERE channel = $channel`;
-const DELETE_FEATURE_BY_CHANNEL_AND_FEATURE_ID = `DELETE FROM features WHERE channel = $channel AND featureId = $featureId`;
-
-const GET_USERS_WITH_FEATURES = `\
-SELECT users.channel, group_concat(features.featureId) AS featureIds
-FROM users
-LEFT OUTER JOIN features ON users.channel = features.channel
-GROUP BY features.channel`;
+const makeError = (error: Error): ResultError => ({ error });
+const makeValue = <T>(value: T): ResultValue<T> => ({ value });
 
 export default class DB {
-  static USERS_TABLE = "users";
-  static FEATURES_TABLE = "features";
-
+  _filename: string;
   _db: sqlite3.Database;
 
   constructor(filename: string) {
-    const handleError = DB._makeHandleError(`DB: ${filename}`);
-
-    this._db = new sqlite3Verbose.Database(filename, handleError);
-
-    this._db.serialize(() => {
-      this._db.run(CREATE_USERS_TABLE, handleError);
-      this._db.run(CREATE_FEATURES_TABLE, handleError);
-    });
-  }
-
-  async getUsers(): Promise<
-    { channel: string; featureIds: string[] }[] | Failure
-  > {
-    return DB._each(this._db, GET_USERS_WITH_FEATURES, (row) => ({
-      channel: row.channel,
-      featureIds: row.featureIds ? row.featureIds.split(",") : [],
-    }));
-  }
-
-  addUser($channel: string): void {
-    const handleError = DB._makeHandleError(`Channel: ${$channel}`);
-
-    this._db.run(INSERT_USER, { $channel }, handleError);
-  }
-
-  removeUser($channel: string): void {
-    const handleError = DB._makeHandleError(`Channel: ${$channel}`);
-
-    this._db.serialize(() => {
-      this._db.run(DELETE_USER_BY_CHANNEL, { $channel }, handleError);
-      this._db.run(DELETE_FEATURE_BY_CHANNEL, { $channel }, handleError);
-    });
-  }
-
-  addFeatureToUser($channel: string, $featureId: string): void {
-    const errorMessage = `Channel: ${$channel} | Feature: ${$featureId}`;
-    const handleError = DB._makeHandleError(errorMessage);
-
-    this._db.run(INSERT_FEATURE, { $channel, $featureId }, handleError);
-  }
-
-  removeFeatureFromUser($channel: string, $featureId: string): void {
-    const errorMessage = `Channel: ${$channel} | Feature: ${$featureId}`;
-    const handleError = DB._makeHandleError(errorMessage);
-
-    this._db.run(
-      DELETE_FEATURE_BY_CHANNEL_AND_FEATURE_ID,
-      { $channel, $featureId },
-      handleError
-    );
-  }
-
-  private static _makeHandleError =
-    (message: string) => (err: Error | null) => {
-      if (err) {
-        Logger.error(chalk.hex("#FFC0CB")(message));
-        Logger.error(err.message);
+    this._filename = filename;
+    this._db = new sqlite3Verbose.Database(filename, (error) => {
+      if (error) {
+        Logger.error("Failed to setup the database");
+        Logger.error(error.message);
       }
-    };
-
-  private static _each<T>(
-    db: sqlite3.Database,
-    query: string,
-    mapRow: (row: any) => T = (row) => row
-  ): Promise<T[] | Failure> {
-    return new Promise((resolve) => {
-      const items: T[] = [];
-
-      const handleCallback = (error: Error | null, row: any) =>
-        error
-          ? resolve(new Failure("DB._each", error.message))
-          : items.push(mapRow(row));
-
-      const handleComplete = (error: Error | null) =>
-        error
-          ? resolve(new Failure("DB._each", error.message))
-          : resolve(items);
-
-      db.each(query, handleCallback, handleComplete);
     });
   }
+
+  run: sqlite3.Database["run"] = (...args) => {
+    return this._db.run(...args);
+  };
+
+  serialize: sqlite3.Database["serialize"] = (...args) => {
+    return this._db.serialize(...args);
+  };
+
+  get(
+    query: string,
+    params: Record<string, unknown> = {}
+  ): Promise<Result<unknown>> {
+    return new Promise((resolve) => {
+      this._db.get(query, params, (error, row) =>
+        error ? resolve(makeError(error)) : resolve(makeValue(row))
+      );
+    });
+  }
+
+  all(
+    query: string,
+    params: Record<string, unknown> = {}
+  ): Promise<Result<unknown[]>> {
+    return new Promise((resolve) => {
+      this._db.all(query, params, (error, rows) =>
+        error ? resolve(makeError(error)) : resolve(makeValue(rows))
+      );
+    });
+  }
+
+  error = (scope: string) => (message: string) => (err: Error | null) => {
+    if (err) {
+      Logger.error(chalk.hex("#FFC0CB")(`DB: ${this._filename}`));
+      Logger.error(chalk.hex("#FFC0CB")(`Scope: ${scope}`));
+      Logger.error(chalk.hex("#FFC0CB")(`Info: ${message}`));
+      Logger.error(err.message);
+    }
+  };
 }

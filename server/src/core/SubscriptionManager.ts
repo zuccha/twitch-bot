@@ -1,9 +1,9 @@
 import Collection from "../utils/Collection";
 import Failure from "../utils/Failure";
-import Logger from "../utils/Logger";
 import DB from "./DB";
 import FeatureManager from "./FeatureManager";
 import Subscription from "./Subscription";
+import SubscriptionPersistence from "./SubscriptionPersistence";
 import {
   GenericNotification,
   Notifier,
@@ -15,8 +15,8 @@ export default class SubscriptionManager {
   private _subscriptions: Collection<Subscription>;
   private _notifier: Notifier<GenericNotification>;
   private _featureManager: FeatureManager;
-  private _db: DB;
   private _session: TwitchSession;
+  private _persistence: SubscriptionPersistence;
 
   constructor(
     notifier: Notifier<GenericNotification>,
@@ -27,12 +27,12 @@ export default class SubscriptionManager {
     this._subscriptions = new Collection();
     this._notifier = notifier;
     this._featureManager = featureManager;
-    this._db = db;
     this._session = session;
+    this._persistence = new SubscriptionPersistence(db);
   }
 
   async setup(): Promise<Failure | undefined> {
-    const users = await this._db.getUsers();
+    const users = await this._persistence.getUsers();
     if (users instanceof Failure) {
       return users;
     }
@@ -42,10 +42,11 @@ export default class SubscriptionManager {
         user.channel,
         this._notifier,
         this._featureManager,
-        this._db,
+        this._persistence,
         user.featureIds
       );
       this._subscriptions.add(user.channel, subscription);
+      this._session.join(user.channel);
     });
   }
 
@@ -76,11 +77,11 @@ export default class SubscriptionManager {
         info.user.name,
         this._notifier,
         this._featureManager,
-        this._db
+        this._persistence
       );
       this._subscriptions.add(info.user.name, subscription);
 
-      this._db.addUser(info.user.name);
+      this._persistence.addUser(info.user.name);
       this._session.join(info.user.name);
 
       const message = `${info.user.displayName} has joined!`;
@@ -98,7 +99,7 @@ export default class SubscriptionManager {
 
       this._subscriptions.remove(info.user.name);
 
-      this._db.removeUser(info.user.name);
+      this._persistence.removeUser(info.user.name);
       this._session.part(info.user.name);
 
       const message = `${info.user.displayName} has left!`;
