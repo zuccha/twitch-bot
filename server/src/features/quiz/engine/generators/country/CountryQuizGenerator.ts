@@ -3,8 +3,8 @@ import Collection from "../../../../../utils/Collection";
 import Failure from "../../../../../utils/Failure";
 import Quiz from "../../base/Quiz";
 import QuizGenerator from "../../base/QuizGenerator";
+import CountryByFlagQuiz from "./quizzes/CountryByFlagQuiz";
 import CountryCapitalQuiz from "./quizzes/CountryCapitalQuiz";
-import CountryFlagQuiz from "./quizzes/CountryFlagQuiz";
 import { Country } from "./Country";
 import countriesJson from "./data/countries.json";
 import CountryContinentQuiz from "./quizzes/CountryContinentQuiz";
@@ -27,9 +27,9 @@ const countryResponseSchema = z.array(
 export class CountryQuizGenerator extends QuizGenerator {
   private _countries: Collection<Country>;
   private _quizzes = [
+    CountryByFlagQuiz,
     CountryCapitalQuiz,
     CountryContinentQuiz,
-    CountryFlagQuiz,
     CountryLanguageQuiz,
   ];
 
