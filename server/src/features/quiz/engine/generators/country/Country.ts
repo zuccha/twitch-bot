@@ -3,4 +3,6 @@ export type Country = {
   name: string;
   flag: string;
   capitals: string[];
+  languages: string[];
+  continents: string[];
 };

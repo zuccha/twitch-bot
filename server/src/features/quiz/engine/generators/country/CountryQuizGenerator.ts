@@ -6,7 +6,10 @@ import QuizGenerator from "../../base/QuizGenerator";
 import CountryCapitalQuiz from "./quizzes/CountryCapitalQuiz";
 import CountryFlagQuiz from "./quizzes/CountryFlagQuiz";
 import { Country } from "./Country";
-import countriesJson from "./countries.json";
+import countriesJson from "./data/countries.json";
+import CountryContinentQuiz from "./quizzes/CountryContinentQuiz";
+import CountryLanguageQuiz from "./quizzes/CountryLanguageQuiz";
+import $Array from "../../../../../utils/Array";
 
 const countryResponseSchema = z.array(
   z.object({
@@ -16,15 +19,19 @@ const countryResponseSchema = z.array(
     name: z.object({
       common: z.string(),
     }),
+    languages: z.record(z.string(), z.string()),
+    continents: z.array(z.string()),
   })
 );
 
 export class CountryQuizGenerator extends QuizGenerator {
   private _countries: Collection<Country>;
-  private _quizzes = new Collection({
-    capital: CountryCapitalQuiz,
-    flag: CountryFlagQuiz,
-  });
+  private _quizzes = [
+    CountryCapitalQuiz,
+    CountryContinentQuiz,
+    CountryFlagQuiz,
+    CountryLanguageQuiz,
+  ];
 
   constructor() {
     super();
@@ -35,9 +42,10 @@ export class CountryQuizGenerator extends QuizGenerator {
     try {
       // Load from API
       // const url = "https://restcountries.com/v3.1/all";
-      // const params = "fields=capital,cca2,name,flag";
+      // const params = "fields=capital,cca2,continents,name,flag,languages";
       // const response = await fetch(`${url}?${params}`);
-      // const countries = countryResponseSchema.parse(await response.json());
+      // const responseJson = await response.json();
+      // const countries = countryResponseSchema.parse(responseJson);
 
       // Load from JSON file
       const countries = countryResponseSchema.parse(countriesJson);
@@ -48,9 +56,11 @@ export class CountryQuizGenerator extends QuizGenerator {
           name: country.name.common,
           flag: country.flag,
           capitals: country.capital,
+          languages: Object.values(country.languages),
+          continents: country.continents,
         });
       });
-    } catch {
+    } catch (error) {
       return new Failure(
         "CountryQuizGenerator.setup",
         "Failed to load countries"
@@ -59,22 +69,22 @@ export class CountryQuizGenerator extends QuizGenerator {
   }
 
   generate(): Quiz | Failure {
-    const countryOrFailure = this._countries.random();
-    if (countryOrFailure instanceof Failure) {
-      return countryOrFailure.extend(
+    const country = this._countries.random();
+    if (country instanceof Failure) {
+      return country.extend(
         "CountryQuizGenerator.generate",
         "Failed to get a country"
       );
     }
 
-    const quizOrFailure = this._quizzes.random();
-    if (quizOrFailure instanceof Failure) {
-      return quizOrFailure.extend(
+    const quiz = $Array.randomItem(this._quizzes);
+    if (!quiz) {
+      return new Failure(
         "CountryQuizGenerator.generate",
         "Failed to get a quiz"
       );
     }
 
-    return new quizOrFailure(countryOrFailure);
+    return new quiz(country);
   }
 }
