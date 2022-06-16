@@ -57,7 +57,7 @@ export default class SubscriptionManager {
   handleCommand(command: string, params: string[], info: TwitchInfo): void {
     // The message comes from a channel of a user subscribed to the bot
     if (info.isUserChannel) {
-      const subscription = this._subscriptions.get(info.user.name);
+      const subscription = this._subscriptions.get(info.channel);
       subscription?.handleCommand(command, params, info);
       return;
     }

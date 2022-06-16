@@ -57,7 +57,7 @@ export default class QuizCommandHandler extends CommandHandler<
     }
 
     const quizOrFailure = this._context.quizEngine.startQuiz(
-      info.user.name,
+      info.channel,
       params[0]
     );
     if (quizOrFailure instanceof Failure) {
@@ -82,7 +82,7 @@ export default class QuizCommandHandler extends CommandHandler<
       return;
     }
 
-    const answerOrFailure = this._context.quizEngine.stopQuiz(info.user.name);
+    const answerOrFailure = this._context.quizEngine.stopQuiz(info.channel);
     if (answerOrFailure instanceof Failure) {
       this._notifier.notifyTwitch(info.channel, answerOrFailure.message);
       return;
@@ -104,7 +104,7 @@ export default class QuizCommandHandler extends CommandHandler<
     const answer = params.join(" ");
 
     const resultOrFailure = this._context.quizEngine.evaluateQuizAnswer(
-      info.user.name,
+      info.channel,
       answer
     );
     if (resultOrFailure instanceof Failure) {
