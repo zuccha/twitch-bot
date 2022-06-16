@@ -2,11 +2,11 @@ import $String from "../../../../../../utils/String";
 import Quiz from "../../../base/Quiz";
 import { Country } from "../Country";
 
-export default class CountryByFlagQuiz extends Quiz {
+export default class CountryContinentByNameQuiz extends Quiz {
   private _country: Country;
 
   constructor(country: Country) {
-    super(`What is the name of the country with this flag ${country.flag}?`);
+    super(`On which continent is ${country.flag} located?`);
     this._country = country;
   }
 
@@ -16,10 +16,9 @@ export default class CountryByFlagQuiz extends Quiz {
 
   isAnswerCorrect(answer: string): boolean {
     const normalizedAnswer = $String.normalize(answer);
-    const normalizedCode = $String.normalize(this._country.code);
-    const normalizedName = $String.normalize(this._country.name);
-    return (
-      normalizedCode === normalizedAnswer || normalizedName === normalizedAnswer
-    );
+    return this._country.continents.some((continent) => {
+      const normalizedContinent = $String.normalize(continent);
+      return normalizedContinent === normalizedAnswer;
+    });
   }
 }

@@ -1,15 +1,15 @@
 import { z } from "zod";
+import $Array from "../../../../../utils/Array";
 import Collection from "../../../../../utils/Collection";
 import Failure from "../../../../../utils/Failure";
 import Quiz from "../../base/Quiz";
 import QuizGenerator from "../../base/QuizGenerator";
-import CountryByFlagQuiz from "./quizzes/CountryByFlagQuiz";
-import CountryCapitalQuiz from "./quizzes/CountryCapitalQuiz";
+import CountryCapitalByNameQuiz from "./quizzes/CountryCapitalByNameQuiz";
+import CountryContinentByNameQuiz from "./quizzes/CountryContinentByNameQuiz";
+import CountryLanguageByNameQuiz from "./quizzes/CountryLanguageByNameQuiz";
+import CountryNameByFlagQuiz from "./quizzes/CountryNameByFlagQuiz";
 import { Country } from "./Country";
 import countriesJson from "./data/countries.json";
-import CountryContinentQuiz from "./quizzes/CountryContinentQuiz";
-import CountryLanguageQuiz from "./quizzes/CountryLanguageQuiz";
-import $Array from "../../../../../utils/Array";
 
 const countryResponseSchema = z.array(
   z.object({
@@ -27,10 +27,10 @@ const countryResponseSchema = z.array(
 export class CountryQuizGenerator extends QuizGenerator {
   private _countries: Collection<Country>;
   private _quizzes = [
-    CountryByFlagQuiz,
-    CountryCapitalQuiz,
-    CountryContinentQuiz,
-    CountryLanguageQuiz,
+    CountryNameByFlagQuiz,
+    CountryCapitalByNameQuiz,
+    CountryContinentByNameQuiz,
+    CountryLanguageByNameQuiz,
   ];
 
   constructor() {

@@ -2,7 +2,7 @@ import $String from "../../../../../../utils/String";
 import Quiz from "../../../base/Quiz";
 import { Country } from "../Country";
 
-export default class CountryLanguageQuiz extends Quiz {
+export default class CountryLanguageByNameQuiz extends Quiz {
   private _country: Country;
 
   constructor(country: Country) {

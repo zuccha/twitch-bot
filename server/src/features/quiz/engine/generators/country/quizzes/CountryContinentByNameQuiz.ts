@@ -2,11 +2,11 @@ import $String from "../../../../../../utils/String";
 import Quiz from "../../../base/Quiz";
 import { Country } from "../Country";
 
-export default class CountryContinentQuiz extends Quiz {
+export default class CountryContinentByNameQuiz extends Quiz {
   private _country: Country;
 
   constructor(country: Country) {
-    super(`On which continent is ${country.flag} located?`);
+    super(`On which continent is ${country.name} located?`);
     this._country = country;
   }
 
